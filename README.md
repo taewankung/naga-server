@@ -1,7 +1,7 @@
 #Naga Server
 
 ##Create by
-  * [Aran Khunaree]()
+  * [Aran Khunaree](https://github.com/NiNiiWs/)
   * [Phutthewan Yangyuenyong](https://github.com/taewankung)
-  * [Chareamchon Seakoo]()
+  * [Chareamchon Seakoo](https://github.com/progreanmer)
 
