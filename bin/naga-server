@@ -6,7 +6,7 @@ from naga.server import NagaServer
 if __name__ == '__main__':
     config_file = None
     if len(sys.argv) < 2:
-        print('apmn-server apmn-server.conf')
+        print('naga-server naga-server.conf')
     else:
         config_file = sys.argv[1]
 

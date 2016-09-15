@@ -2,12 +2,12 @@ from .unit import Unit
 import math
 
 class Creep(Unit):
-    def __init__(self,data_unit,pos_x=0,pos_y = 0,unit_range = 10):
+    def __init__(self,data_unit,unit_range = 10):
         super().__init__(data_unit,
                          True,
                          [""],
-                         pos_x,
-                         pos_y,
+                         data_unit.position_x,
+                         data_unit.position_y,
                          unit_range
                          )
         self.move_speed = data_unit.move_speed
@@ -26,8 +26,8 @@ class Creep(Unit):
         degree = math.atan(rad)
         force_x = self.move_speed * math.cos(degree)
         force_y = self.move_speed * math.sin(degree)
-        force_x = force_x/30
-        force_y = force_y/30
+        force_x = force_x/5
+        force_y = force_y/5
         if abs(self.pos_x)-pos_x < 0.001:
             self.pos_x += force_x
         if  abs(self.pos_y)-pos_y < 0.001:

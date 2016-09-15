@@ -70,6 +70,7 @@ class NagaGame(threading.Thread):
                     creep = self.game_space.creep_team1[creep_id]
                     creep.move(500,500)
                     print( "{0} {1} ".format(creep.pos_x,creep.pos_y))
+                self.game_controller.response_all(self.update_game(),self)
             time.sleep(1)
 
     def update(self, request):

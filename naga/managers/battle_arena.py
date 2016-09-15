@@ -36,6 +36,9 @@ class BattleArena:
                             )
         return battle_arena_data
 
+    def schedule(self):
+        pass
+
     def create_creep(self):
         c = models.Creep.objects(name = "Creep").first()
         c_data = games.GameUnit(**dict(c.to_mongo()))
@@ -97,5 +100,4 @@ class BattleArena:
             self.creep_team1[c].move(50,50)
         for c in self.creep_team1:
             print(str(self.creep_team1[c].pos_x) +" "+str(self.creep_team1[c].pos_y))
- 
         pass

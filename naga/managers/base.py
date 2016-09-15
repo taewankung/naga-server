@@ -15,7 +15,7 @@ class ComplexEncoder(json.JSONEncoder):
             return dict(id=str(obj.id), username=obj.username)
         if isinstance(obj, datetime.datetime):
             return obj.isoformat()
-        if isinstance(obj, games.ApaimaneeGame):
+        if isinstance(obj, games.NagaGame):
             return obj.to_data_dict()
         if isinstance(obj, games.Player):
             return obj.to_data_dict()
