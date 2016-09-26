@@ -18,16 +18,16 @@ class Creep(Unit):
         self.id_controller = id_controller
 
     def move(self,pos_x,pos_y):
-        distance = math.sqrt(math.pow((self.pos_y-self.pos_y),2)+
-                             math.pow((self.pos_x-pos_x),2)
-                            )
+        #  distance = math.sqrt(math.pow((self.pos_y-self.pos_y),2)+
+                             #  math.pow((self.pos_x-pos_x),2)
+                            #  )
 
         rad = (pos_y-self.pos_y)/(pos_x-self.pos_x)
         degree = math.atan(rad)
         force_x = self.move_speed * math.cos(degree)
         force_y = self.move_speed * math.sin(degree)
-        force_x = force_x/5
-        force_y = force_y/5
+        force_x = force_x/15
+        force_y = force_y/15
         if abs(self.pos_x)-pos_x < 0.001:
             self.pos_x += force_x
         if  abs(self.pos_y)-pos_y < 0.001:

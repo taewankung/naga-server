@@ -108,14 +108,20 @@ class NagaGame(threading.Thread):
         return response
 
     def move_hero(self, request):
-
+        #print("xxx")
         params = request['args']
         x = params['x']
         y = params['y']
         player = request['player']
-        hero = self.game_space.heros[player.id]
-        hero.target = dict(x=x, y=y)
+        if player.id in self.game_space.hero_team1:
+            hero = self.game_space.hero_team1[player.id]
+        if player.id in self.game_space.hero_team2:
+            hero = self.game_space.hero_team2[player.id]
+#        hero.target = dict(x=x, y=y)
+        hero.move(x,y)
+        print("hero {0}: {1},{2}",player.id ,hero.pos_x,hero.pos_y)
         args = dict(x=x, y=y, player_id=player.id)
+
         response = GameResponse(method='move_hero',
                 args=args,
                 response_type='other')

@@ -6,12 +6,13 @@
 #sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
 
 from .unit import Unit
+import math
 
 class Hero(Unit):
     def __init__(self,
                 data_unit,
-                position_x = 20,
-                position_y = 20,
+                position_x = 50,
+                position_y = 50,
                 unit_range = 50, #self.range = unit_range
                 id_controller = 'system'
                 ):
@@ -85,12 +86,17 @@ class Hero(Unit):
                  }
         return status
 
-    def move(self,x,y):
+    def move(self,pos_x,pos_y):
         if self.move_status:
-            self.pos_x += (self.move_speed/100)
-            self.pos_y += (self.move_speed/100)
-        if self.pos_x < x+10 and self.pos_x > x-10 and self.pos_y < y+10 and self.pos_y > y-10:
-            sefl.move_status = False
+            rad = (pos_y-self.pos_y)/(pos_x-self.pos_x)
+            degree = math.atan(rad)
+            forge_x = (self.move_speed * math.cos(degree))/15
+            forge_y = (self.move_speed * math.sin(degree))/15
+
+        if abs(self.pos_x)-pos_x < 0.001:
+            self.pos_x += forge_x
+        if abs(self.pos_y)-pos_y < 0.001:
+            self.pos_y += forge_y
 
     def to_data_dict(self):
         result = dict(take_damaged=self.take_damaged,
