@@ -49,10 +49,10 @@ class BattleArena:
 
     def load_unit(self):
         for player in self.players:
-            if player.team == "team1":
+            if player.team == "team1" and player.ready:
                 self.hero_team1[player.id] = Hero(self.heros[player.id])
-                print(self.hero_team1)
-            elif player.team == "team2":
+#                print(self.hero_team1)
+            elif player.team == "team2" and player.ready:
                 self.hero_team2[player.id] = Hero(self.heros[player.id])
         tower_position =[
                     "base_left","base_right",

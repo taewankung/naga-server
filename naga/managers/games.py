@@ -3,6 +3,7 @@ import datetime
 import time
 import json
 import threading
+import sched
 
 from .battle_arena import BattleArena
 
@@ -45,6 +46,11 @@ class GameResponse:
         self.method = method
         self.qos = qos
 
+#  def creep_out_scheduler(out_time):
+    #  scheduler = sched.scheduler(time.time,time.sleep)
+    #  scheduler.enter(15,1,)
+    #  pass
+
 class NagaGame(threading.Thread):
     def __init__(self, room_id, room_name, owner,game_controller):
         super().__init__()
@@ -58,18 +64,23 @@ class NagaGame(threading.Thread):
         self.game_controller = game_controller
 
     def run(self):
+        count = 0;
         while self.status != 'stop':
             if self.status == 'play':
                 diff_time = datetime.datetime.now() - self.ready_time
-                print(diff_time.seconds)
+                #print(diff_time.seconds)
                 if diff_time.seconds % 15 == 0 and diff_time.seconds > 0:
-                    self.game_space.create_creep()
-                    print('creat_creep')
+                    if count == 0:
+#                        print('creat_creep')
+                        self.game_space.create_creep()
+                        count += 1;
                     self.game_controller.response_all(self.update_game(),self)
+                else:
+                    count = 0;
                 for creep_id in self.game_space.creep_team1:
                     creep = self.game_space.creep_team1[creep_id]
                     creep.move(500,500)
-                    print( "{0} {1} ".format(creep.pos_x,creep.pos_y))
+#                    print( "{0} {1} ".format(creep.pos_x,creep.pos_y))
                 self.game_controller.response_all(self.update_game(),self)
             time.sleep(1)
 
@@ -77,9 +88,12 @@ class NagaGame(threading.Thread):
         print("update", request)
 
     def ready(self, request):
+#        print(request)
         player = request['player']
+#        print("xxx")
         player.ready = True
         player_ready_count = len([p for p in self.players if p.ready])
+
         print("ready count:", player_ready_count)
         self.status = 'play'
         self.ready_time = datetime.datetime.now()
@@ -99,6 +113,9 @@ class NagaGame(threading.Thread):
 
     def initial(self, request):
         player = request['player']
+        print("################")
+        print(request["client_id"])
+        print("################")
         self.game_space.load_unit()
         args = dict(players=self.players, player=player, game_space=self.game_space)
         response = GameResponse(method='initial_game',
@@ -108,18 +125,18 @@ class NagaGame(threading.Thread):
         return response
 
     def move_hero(self, request):
-        #print("xxx")
         params = request['args']
         x = params['x']
         y = params['y']
         player = request['player']
+#        print(player.id)
         if player.id in self.game_space.hero_team1:
             hero = self.game_space.hero_team1[player.id]
         if player.id in self.game_space.hero_team2:
             hero = self.game_space.hero_team2[player.id]
 #        hero.target = dict(x=x, y=y)
         hero.move(x,y)
-        print("hero {0}: {1},{2}",player.id ,hero.pos_x,hero.pos_y)
+        #  print("hero {0}: {1},{2}",player.id ,hero.pos_x,hero.pos_y)
         args = dict(x=x, y=y, player_id=player.id)
 
         response = GameResponse(method='move_hero',
