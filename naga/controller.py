@@ -26,18 +26,18 @@ class NagaController:
         u2 = models.User.objects(username='client1').first()
         p2 = Player('client1', u2, 'client1')
 
-        u3 = models.User.objects(username='client1').first()
-        p3 = Player('client1', u2, 'client2')
+        #  u3 = models.User.objects(username='client1').first()
+        #  p3 = Player('client1', u2, 'client2')
 
-        u4 = models.User.objects(username='client1').first()
-        p4 = Player('client1', u2, 'client3')
+        #  u4 = models.User.objects(username='client1').first()
+        #  p4 = Player('client1', u2, 'client3')
 
-        u5 = models.User.objects(username='client1').first()
-        p5 = Player('client1', u2, 'client4')
+        #  u5 = models.User.objects(username='client1').first()
+        #  p5 = Player('client1', u2, 'client4')
 
 #        print(p2.id)
-        game.players.append(p2)
-        game.players.append(p1)
+        game.add_player(p2)
+        game.add_player(p1)
 
         self.room.rooms[test_room_id] = game
         hero = models.Hero.objects(name='Sinsamut').first()

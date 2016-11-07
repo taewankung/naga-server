@@ -3,6 +3,7 @@ import datetime
 import time
 import json
 import threading
+from threading import Timer
 import sched
 
 from .battle_arena import BattleArena
@@ -46,10 +47,26 @@ class GameResponse:
         self.method = method
         self.qos = qos
 
-#  def creep_out_scheduler(out_time):
-    #  scheduler = sched.scheduler(time.time,time.sleep)
-    #  scheduler.enter(15,1,)
-    #  pass
+ROUND_CHECK = 0.001
+
+class GameScheduler(threading.Thread):
+    def __init__(self,naga_game):
+        super().__init__()
+        self.naga_game = naga_game
+        self.status = 'wait'
+
+    def run(self):
+        while self.status != 'stop':
+            print('compute')
+
+            time.sleep(ROUND_CHECK)
+
+    def stop(self):
+        self.status = 'stop'
+
+        #  Timer(15,self.naga_game.spawn_creep,()).start()
+#        time.sleep(1)
+#        Timer(1,1,self.naga_game.creep_center_move,()).start()
 
 class NagaGame(threading.Thread):
     def __init__(self, room_id, room_name, owner,game_controller):
@@ -59,38 +76,66 @@ class NagaGame(threading.Thread):
         self.room_name = room_name
         self.players = []
         self.game_space = BattleArena(self.players)#GameSpace()
-        self.owner=owner
+        self.owner = owner
         self.ready_time = None
         self.game_controller = game_controller
+        self.game_scheduler = GameScheduler(self)
+        self.lock = threading.Lock()
+
+        self.player_executors = dict()
 
     def run(self):
         count = 0;
         while self.status != 'stop':
             if self.status == 'play':
-                diff_time = datetime.datetime.now() - self.ready_time
-                #print(diff_time.seconds)
-                if diff_time.seconds % 15 == 0 and diff_time.seconds > 0:
-                    if count == 0:
-#                        print('creat_creep')
-                        self.game_space.create_creep()
-                        count += 1;
-                    self.game_controller.response_all(self.update_game(),self)
-                else:
-                    count = 0;
-                for creep_id in self.game_space.creep_team1:
-                    creep = self.game_space.creep_team1[creep_id]
-                    creep.move(500,500)
-#                    print( "{0} {1} ".format(creep.pos_x,creep.pos_y))
+                #  diff_time = datetime.datetime.now() - self.ready_time
+                #  if count==0:
+                    #  self.scheduler.run()
+                    #  count +=1
+                #  else:
+                    #  count += 1
+                    #  print(count)
+                    #  if(count==14999):
+                        #  count=0
+                #  print(diff_time.seconds)
+                #  if diff_time.seconds % 15 == 0 and diff_time.seconds > 0:
+                    #  if count == 0:
+                      #  print('creat_creep')
+                        #  self.game_space.create_creep()
+                        #  count += 1;
+                    #  self.game_controller.response_all(self.update_game(),self)
+                #  else:
+                    #  count = 0;
+                #  self.scheduler_table_run()
+                #  for creep_id in self.game_space.creep_team1:
+                    #  creep = self.game_space.creep_team1[creep_id]
+                    #  creep.move(500,500)
+                  #  print( "{0} {1} ".format(creep.pos_x,creep.pos_y))
                 self.game_controller.response_all(self.update_game(),self)
-            time.sleep(1)
+            time.sleep(0.001)
 
     def update(self, request):
         print("update", request)
 
+    def spawn_creep(self):
+        self.game_space.create_creep()
+        print("spawn")
+        self.game_controller.response_all(self.update_game(),self)
+
+    #  def creep_center_move(self):
+        #  for creep_id in self.game_space.creep_team1:
+            #  creep = self.game_space.creep_team1[creep_id]
+            #  creep.move(500,500)
+
+    #  def scheduler_table_run(self):
+        #  self.scheduler.enter(15,1,self.spawn_creep)
+        #  self.creep_center_move()
+        #  self.scheduler.enterabs(1,1,self.game_controller.response_all,(self.update_game(),self))
+        #  self.scheduler.run()
+        #  pass
+
     def ready(self, request):
-#        print(request)
         player = request['player']
-#        print("xxx")
         player.ready = True
         player_ready_count = len([p for p in self.players if p.ready])
 
@@ -100,8 +145,14 @@ class NagaGame(threading.Thread):
         if player_ready_count != len(self.players):
             return
 
+        self.game_scheduler.start()
+
         response = GameResponse(method='start_game', qos=1)
         return response
+
+    def add_player(self, player):
+        self.players.append(player)
+
 
     def update_game(self):
         args = dict(game_space=self.game_space)
@@ -124,8 +175,15 @@ class NagaGame(threading.Thread):
                 qos=1)
         return response
 
+    def stop(self):
+        self.status = 'stop'
+        self.game_scheduler = 'stop'
+
+
     def move_hero(self, request):
+        #self.lock.acquire()
         params = request['args']
+#        print(request)
         x = params['x']
         y = params['y']
         player = request['player']
@@ -135,7 +193,9 @@ class NagaGame(threading.Thread):
         if player.id in self.game_space.hero_team2:
             hero = self.game_space.hero_team2[player.id]
 #        hero.target = dict(x=x, y=y)
+
         hero.move(x,y)
+        #self.lock.release();
         #  print("hero {0}: {1},{2}",player.id ,hero.pos_x,hero.pos_y)
         args = dict(x=x, y=y, player_id=player.id)
 
@@ -171,5 +231,3 @@ class NagaGame(threading.Thread):
         result = self.to_data_dict()
         result_json = json.dumps(result)
         return result_json
-
-

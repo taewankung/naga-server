@@ -87,16 +87,29 @@ class Hero(Unit):
         return status
 
     def move(self,pos_x,pos_y):
-        if self.move_status:
-            rad = (pos_y-self.pos_y)/(pos_x-self.pos_x)
-            degree = math.atan(rad)
-            forge_x = (self.move_speed * math.cos(degree))/15
-            forge_y = (self.move_speed * math.sin(degree))/15
+        finish_x = False
+        finish_y = False
+        while True:
+            if self.move_status:
+                rad = (pos_y-self.pos_y)/(pos_x-self.pos_x)
+                degree = math.atan(rad)
+                forge_x = self.move_speed * math.cos(degree)*0.001
+                forge_y = self.move_speed * math.sin(degree)*0.001
+                if pos_x < self.pos_x:
+                    forge_x = -forge_x
+                if pos_y < self.pos_y:
+                    forge_y = -forge_y
+            if self.pos_x-pos_x > 0.1 or self.pos_x-pos_x < -0.1:
+                self.pos_x += forge_x
+            else:
+                finish_x = True
+            if self.pos_y-pos_y > 0.1 or self.pos_y-pos_y <-0.1:
+                self.pos_y += forge_y
+            else:
+                finish_y = True
+            if finish_x and finish_y:
+                break
 
-        if abs(self.pos_x)-pos_x < 0.001:
-            self.pos_x += forge_x
-        if abs(self.pos_y)-pos_y < 0.001:
-            self.pos_y += forge_y
 
     def to_data_dict(self):
         result = dict(take_damaged=self.take_damaged,

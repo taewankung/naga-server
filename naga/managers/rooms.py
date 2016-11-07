@@ -49,7 +49,7 @@ class Room(Manager):
                     player = Player(request['client_id'], user, request['token'])
                     if len(game.players) % 2 != 0:
                         player.team = 'team2'
-                    game.players.append(player)
+                    game.add_player(player)
                 response['joined'] = True
                 response['room_id'] = room_id
             else:
@@ -117,7 +117,8 @@ class Room(Manager):
                     game.players.remove(player)
 
             if len(game.players) == 0:
-                self.rooms.pop(room_id)
+                r = self.rooms.pop(room_id)
+                r.stop()
 
         response = dict()
         return response

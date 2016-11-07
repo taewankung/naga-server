@@ -23,14 +23,18 @@ class Creep(Unit):
                             #  )
 
         rad = (pos_y-self.pos_y)/(pos_x-self.pos_x)
+        if( pos_x - self.pos_x < 0 or pos_y - self.pos_y<0):
+            rad =-1*rad
         degree = math.atan(rad)
         force_x = self.move_speed * math.cos(degree)
         force_y = self.move_speed * math.sin(degree)
-        force_x = force_x/ 15
-        force_y = force_y/ 15
-        if abs(self.pos_x)-pos_x < 0.001:
+        force_x = force_x *0.001
+        force_y = force_y *0.001
+#        print(rad)
+#        print(self.pos_x)
+        if self.pos_x-pos_x > 0.1 or self.pos_x - pos_x < -0.1:
             self.pos_x += force_x
-        if  abs(self.pos_y)-pos_y < 0.001:
+        if self.pos_y-pos_y > 0.1 or self.pos_y - pos_y < -0.1:
             self.pos_y += force_y
 
     def attack(self):
