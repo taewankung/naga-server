@@ -25,6 +25,10 @@ class NagaController:
         u2 = models.User.objects(username='client1').first()
         p2 = Player('client1', u2, 'client1')
 
+#        u3 = models.User.objects(username='client3').first()
+#        p3 = Player('client3', u3, 'client3')
+
+#        game.add_player(p3)
         game.add_player(p2)
         game.add_player(p1)
 
@@ -33,6 +37,7 @@ class NagaController:
         hero2 = models.Hero.objects(name='Apaimanee').first()
         game.game_space.heros[str(u.id)] = GameUnit(**dict(hero.to_mongo()))
         game.game_space.heros[str(u2.id)] = GameUnit(**dict(hero.to_mongo()))
+#        game.game_space.heros[str(u3.id)] = GameUnit(**dict(hero.to_mongo()))
         game.start()
 
     def stop(self):

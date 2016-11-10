@@ -95,7 +95,7 @@ class Hero(Unit):
         if self.move_status:
             m = (pos_y-self.pos_y)/(pos_x-self.pos_x)
             rad = math.atan(m)
-            print(rad)
+#            print(rad)
             if pos_x < self.pos_x and pos_y < self.pos_y:
                 rad = rad + pi
             elif pos_x < self.pos_x and pos_y > self.pos_y:
