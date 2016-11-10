@@ -77,6 +77,7 @@ class GameScheduler(threading.Thread):
         command_action={
                         "move":hero.move(command["target_pos_x"],command["target_pos_y"]),
                        }
+
         if command_action[command["action"]]:
             args = dict(msg=command["msg"])
             player.command=dict()
