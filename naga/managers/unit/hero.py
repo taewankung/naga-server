@@ -41,6 +41,7 @@ class Hero(Unit):
         self.current_exp = 0
         self.move_status = True
         self.act_status = ""
+        #  self.target = None
         self.time_to_born = 0
 
     def level_up(self):
@@ -89,26 +90,34 @@ class Hero(Unit):
     def move(self,pos_x,pos_y):
         finish_x = False
         finish_y = False
-        while True:
-            if self.move_status:
-                rad = (pos_y-self.pos_y)/(pos_x-self.pos_x)
-                degree = math.atan(rad)
-                forge_x = self.move_speed * math.cos(degree)*0.001
-                forge_y = self.move_speed * math.sin(degree)*0.001
-                if pos_x < self.pos_x:
-                    forge_x = -forge_x
-                if pos_y < self.pos_y:
-                    forge_y = -forge_y
-            if self.pos_x-pos_x > 0.1 or self.pos_x-pos_x < -0.1:
-                self.pos_x += forge_x
-            else:
-                finish_x = True
-            if self.pos_y-pos_y > 0.1 or self.pos_y-pos_y <-0.1:
-                self.pos_y += forge_y
-            else:
-                finish_y = True
-            if finish_x and finish_y:
-                break
+        complete = False
+        pi = 3.14159265359
+        if self.move_status:
+            m = (pos_y-self.pos_y)/(pos_x-self.pos_x)
+            rad = math.atan(m)
+            print(rad)
+            if pos_x < self.pos_x and pos_y < self.pos_y:
+                rad = rad + pi
+            elif pos_x < self.pos_x and pos_y > self.pos_y:
+                rad = rad+pi
+
+
+            forge_x = self.move_speed * math.cos(rad)*0.001
+            forge_y = self.move_speed * math.sin(rad)*0.001
+
+        if self.pos_x-pos_x > 0.1 or self.pos_x-pos_x < -0.1:
+            self.pos_x += forge_x
+        else:
+            finish_x = True
+        if self.pos_y-pos_y > 0.1 or self.pos_y-pos_y <-0.1:
+            self.pos_y += forge_y
+        else:
+            finish_y = True
+        if finish_y and finish_x:
+            complete = True
+        return complete
+        #  if finish_x and finish_y:
+            #  break
 
 
     def to_data_dict(self):

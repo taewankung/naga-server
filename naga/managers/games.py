@@ -31,6 +31,7 @@ class Player:
         self.token = token
         self.ready = False
         self.team = 'team1'
+        self.command =dict()
 
     def to_data_dict(self):
         result = dict(id=self.id,
@@ -57,16 +58,37 @@ class GameScheduler(threading.Thread):
 
     def run(self):
         while self.status != 'stop':
-            print('compute')
-
+            #print('compute')
+            for p in self.naga_game.players:
+                if len(p.command) !=0:
+                    self.execute(p,p.command)
             time.sleep(ROUND_CHECK)
 
     def stop(self):
         self.status = 'stop'
 
-        #  Timer(15,self.naga_game.spawn_creep,()).start()
-#        time.sleep(1)
-#        Timer(1,1,self.naga_game.creep_center_move,()).start()
+    def execute(self,player,command):
+        #print(player.id)
+        #print(self.naga_game.game_space.hero_team1)
+        if player.id in self.naga_game.game_space.hero_team1:
+            hero = self.naga_game.game_space.hero_team1[player.id]
+        if player.id in self.naga_game.game_space.hero_team2:
+            hero = self.naga_game.game_space.hero_team2[player.id]
+        command_action={
+                        "move":hero.move(command["target_pos_x"],command["target_pos_y"]),
+                       }
+        if command_action[command["action"]]:
+            args = dict(msg=command["msg"])
+            player.command=dict()
+            response = GameResponse(method='complete_command',
+                                    response_type='owner',
+                                    args=args,
+                                    qos=1)
+            self.naga_game.game_controller.response_other(
+                                    response,
+                                    self.naga_game,
+                                    player.client_id
+                                    )
 
 class NagaGame(threading.Thread):
     def __init__(self, room_id, room_name, owner,game_controller):
@@ -88,6 +110,9 @@ class NagaGame(threading.Thread):
         count = 0;
         while self.status != 'stop':
             if self.status == 'play':
+                if count ==0:
+                    self.game_scheduler.start()
+                    count = count+1
                 #  diff_time = datetime.datetime.now() - self.ready_time
                 #  if count==0:
                     #  self.scheduler.run()
@@ -112,7 +137,7 @@ class NagaGame(threading.Thread):
                     #  creep.move(500,500)
                   #  print( "{0} {1} ".format(creep.pos_x,creep.pos_y))
                 self.game_controller.response_all(self.update_game(),self)
-            time.sleep(0.001)
+            time.sleep(ROUND_CHECK)
 
     def update(self, request):
         print("update", request)
@@ -122,18 +147,6 @@ class NagaGame(threading.Thread):
         print("spawn")
         self.game_controller.response_all(self.update_game(),self)
 
-    #  def creep_center_move(self):
-        #  for creep_id in self.game_space.creep_team1:
-            #  creep = self.game_space.creep_team1[creep_id]
-            #  creep.move(500,500)
-
-    #  def scheduler_table_run(self):
-        #  self.scheduler.enter(15,1,self.spawn_creep)
-        #  self.creep_center_move()
-        #  self.scheduler.enterabs(1,1,self.game_controller.response_all,(self.update_game(),self))
-        #  self.scheduler.run()
-        #  pass
-
     def ready(self, request):
         player = request['player']
         player.ready = True
@@ -142,10 +155,10 @@ class NagaGame(threading.Thread):
         print("ready count:", player_ready_count)
         self.status = 'play'
         self.ready_time = datetime.datetime.now()
+        self.game_space.load_unit()
         if player_ready_count != len(self.players):
             return
 
-        self.game_scheduler.start()
 
         response = GameResponse(method='start_game', qos=1)
         return response
@@ -167,7 +180,6 @@ class NagaGame(threading.Thread):
         print("################")
         print(request["client_id"])
         print("################")
-        self.game_space.load_unit()
         args = dict(players=self.players, player=player, game_space=self.game_space)
         response = GameResponse(method='initial_game',
                 args=args,
@@ -183,27 +195,34 @@ class NagaGame(threading.Thread):
     def move_hero(self, request):
         #self.lock.acquire()
         params = request['args']
-#        print(request)
+
+        msg = params['msg']
+        #  print(request)
         x = params['x']
         y = params['y']
-        player = request['player']
+        player_r = request['player']
 #        print(player.id)
-        if player.id in self.game_space.hero_team1:
-            hero = self.game_space.hero_team1[player.id]
-        if player.id in self.game_space.hero_team2:
-            hero = self.game_space.hero_team2[player.id]
-#        hero.target = dict(x=x, y=y)
-
-        hero.move(x,y)
+        if player_r.id in self.game_space.hero_team1:
+            hero = self.game_space.hero_team1[player_r.id]
+        if player_r.id in self.game_space.hero_team2:
+            hero = self.game_space.hero_team2[player_r.id]
+        for p in self.players:
+            if p.client_id == player_r.client_id:
+                p.command =dict(action="move",
+                                #current_pos=(hero.pos_x,hero.pos_y),
+                                target_pos_x=x,
+                                target_pos_y=y,
+                                msg = msg
+                                )
         #self.lock.release();
         #  print("hero {0}: {1},{2}",player.id ,hero.pos_x,hero.pos_y)
-        args = dict(x=x, y=y, player_id=player.id)
+        args = dict(x=x, y=y, player_id=player_r.id)
 
-        response = GameResponse(method='move_hero',
-                args=args,
-                response_type='other')
+        #  response = GameResponse(method='move_hero',
+                #  args=args,
+                #  response_type='other')
 
-        return response
+        #  return response
 
     def skill_action(self, request):
         params = request['args']
