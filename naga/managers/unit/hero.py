@@ -8,6 +8,9 @@
 from .unit import Unit
 import math
 
+def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
+    return abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
+
 class Hero(Unit):
     def __init__(self,
                 data_unit,
@@ -105,11 +108,11 @@ class Hero(Unit):
             forge_x = self.move_speed * math.cos(rad)*0.001
             forge_y = self.move_speed * math.sin(rad)*0.001
 
-        if self.pos_x-pos_x > 0.1 or self.pos_x-pos_x < -0.1:
+        if not isclose(pos_x,self.pos_x,1e-01):
             self.pos_x += forge_x
         else:
             finish_x = True
-        if self.pos_y-pos_y > 0.1 or self.pos_y-pos_y <-0.1:
+        if not isclose(self.pos_y,pos_y,1e-01):
             self.pos_y += forge_y
         else:
             finish_y = True
