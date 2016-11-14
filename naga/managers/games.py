@@ -72,11 +72,25 @@ class GameScheduler(threading.Thread):
         #print(self.naga_game.game_space.hero_team1)
         if player.id in self.naga_game.game_space.hero_team1:
             hero = self.naga_game.game_space.hero_team1[player.id]
-        if player.id in self.naga_game.game_space.hero_team2:
+        elif player.id in self.naga_game.game_space.hero_team2:
             hero = self.naga_game.game_space.hero_team2[player.id]
         command_action={
                         "move":hero.move(command["target_pos_x"],command["target_pos_y"]),
                        }
+        if hero.act_status["found_event"] !="":
+            args = dict(msg=hero.act_status["found_event"])
+            response = GameResponse(method='complete_command',
+                                    response_type='owner',
+                                    args=args,
+                                    qos=1)
+            self.naga_game.game_controller.response_other(
+                                    response,
+                                    self.naga_game,
+                                    player.client_id
+                                    )
+            hero.act_status["found_event"]=""
+
+#bug send many time; resolve with check number of sending
         if command_action[command["action"]]:
             args = dict(msg=command["msg"])
             player.command=dict()

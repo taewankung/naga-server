@@ -36,7 +36,7 @@ class NagaController:
         hero = models.Hero.objects(name='Sinsamut').first()
         hero2 = models.Hero.objects(name='Apaimanee').first()
         game.game_space.heros[str(u.id)] = GameUnit(**dict(hero.to_mongo()))
-        game.game_space.heros[str(u2.id)] = GameUnit(**dict(hero.to_mongo()))
+        game.game_space.heros[str(u2.id)] = GameUnit(**dict(hero2.to_mongo()))
 #        game.game_space.heros[str(u3.id)] = GameUnit(**dict(hero.to_mongo()))
         game.start()
 

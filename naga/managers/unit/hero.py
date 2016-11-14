@@ -6,6 +6,7 @@
 #sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
 
 from .unit import Unit
+from .sensor.enemy_sensor import EnemySensor
 import math
 
 def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
@@ -43,9 +44,14 @@ class Hero(Unit):
         self.lasthit = 0
         self.current_exp = 0
         self.move_status = True
-        self.act_status = ""
+        self.act_status = dict(action="",
+                               found_event=""
+                              )
         #  self.target = None
         self.time_to_born = 0
+        self.enemy_list = []
+        self.near_enemy = []
+        self.enemy_sensor = EnemySensor(self,self.enemy_list)
 
     def level_up(self):
         if self.level <=25:
@@ -108,20 +114,28 @@ class Hero(Unit):
             forge_x = self.move_speed * math.cos(rad)*0.001
             forge_y = self.move_speed * math.sin(rad)*0.001
 
-        if not isclose(pos_x,self.pos_x,1e-01):
+        if not isclose(pos_x,self.pos_x,1e-01) and self.pos_x < 1000 and self.pos_x > 0:
             self.pos_x += forge_x
         else:
             finish_x = True
-        if not isclose(self.pos_y,pos_y,1e-01):
+        if not isclose(self.pos_y,pos_y,1e-01) and self.pos_y < 1000 and self.pos_y > 0:
             self.pos_y += forge_y
         else:
             finish_y = True
         if finish_y and finish_x:
             complete = True
+#/////////////check enemy///////////////////
+        old_enemy = self.near_enemy
+        self.near_enemy = self.enemy_sensor.scan()
+        if old_enemy != self.near_enemy:
+            self.act_status["found_event"]="found_enemy"
         return complete
         #  if finish_x and finish_y:
             #  break
 
+    def attack(self,target_unit):
+        print("Attack plz")
+        pass
 
     def to_data_dict(self):
         result = dict(take_damaged=self.take_damaged,
