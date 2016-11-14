@@ -122,6 +122,9 @@ class Hero(Unit):
             self.pos_y += forge_y
         else:
             finish_y = True
+        print(self.pos_y)
+        print("FINSH X " + str(finish_x))
+        print("FINISH Y " + str(finish_y))
         if finish_y and finish_x:
             complete = True
 #/////////////check enemy///////////////////

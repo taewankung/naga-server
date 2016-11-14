@@ -77,6 +77,7 @@ class GameScheduler(threading.Thread):
         command_action={
                         "move":hero.move(command["target_pos_x"],command["target_pos_y"]),
                        }
+
         if hero.act_status["found_event"] !="":
             args = dict(msg=hero.act_status["found_event"])
             response = GameResponse(method='complete_command',
@@ -91,6 +92,7 @@ class GameScheduler(threading.Thread):
             hero.act_status["found_event"]=""
 
 #bug send many time; resolve with check number of sending
+
         if command_action[command["action"]]:
             args = dict(msg=command["msg"])
             player.command=dict()
