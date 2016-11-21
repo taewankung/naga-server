@@ -15,10 +15,10 @@ class EnemySensor(Sensor):
                           )
             if dist_u <= in_range:
                 if u not in unit_in_range:
-                    unit_in_range.append(u.name)
+                    unit_in_range.append(u)
             else:
                 if u in unit_in_range:
-                    unit_in_range.remove(u.name)
+                    unit_in_range.remove(u)
         return unit_in_range
 
     def update_unit_list(self):

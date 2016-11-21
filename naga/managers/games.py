@@ -55,9 +55,12 @@ class GameScheduler(threading.Thread):
         super().__init__()
         self.naga_game = naga_game
         self.status = 'wait'
+        self.counter_send =0
+        self.lock = threading.Lock()
 
     def run(self):
         while self.status != 'stop':
+            self.counter_send = 0
             #print('compute')
             for p in self.naga_game.players:
                 if len(p.command) !=0:
@@ -77,34 +80,35 @@ class GameScheduler(threading.Thread):
         command_action={
                         "move":hero.move(command["target_pos_x"],command["target_pos_y"]),
                        }
-
+        #  self.lock.acquire()
         if hero.act_status["found_event"] !="":
             args = dict(msg=hero.act_status["found_event"])
             response = GameResponse(method='complete_command',
                                     response_type='owner',
                                     args=args,
                                     qos=1)
-            self.naga_game.game_controller.response_other(
+            self.naga_game.game_controller.response(
                                     response,
-                                    self.naga_game,
-                                    player.client_id
+                                    player.client_id,
+                                    self.naga_game
                                     )
             hero.act_status["found_event"]=""
 
-#bug send many time; resolve with check number of sending
 
+#bug send many time; resolve with check number of sending
         if command_action[command["action"]]:
             args = dict(msg=command["msg"])
-            player.command=dict()
+            print(player.client_id+" "+command["msg"])
             response = GameResponse(method='complete_command',
                                     response_type='owner',
                                     args=args,
                                     qos=1)
-            self.naga_game.game_controller.response_other(
+            self.naga_game.game_controller.response(
                                     response,
-                                    self.naga_game,
-                                    player.client_id
+                                    player.client_id,
+                                    self.naga_game
                                     )
+        #  self.lock.release();
 
 class NagaGame(threading.Thread):
     def __init__(self, room_id, room_name, owner,game_controller):
@@ -232,13 +236,18 @@ class NagaGame(threading.Thread):
                                 )
         #self.lock.release();
         #  print("hero {0}: {1},{2}",player.id ,hero.pos_x,hero.pos_y)
-        args = dict(x=x, y=y, player_id=player_r.id)
+#        args = dict(x=x, y=y, player_id=player_r.id)
 
         #  response = GameResponse(method='move_hero',
                 #  args=args,
                 #  response_type='other')
 
         #  return response
+
+    def attack(self,request):
+        target = request["args"]["target"]
+        if target != []:
+            print(str(request["player"].id)+ "attack:"+str(target["name"]))
 
     def skill_action(self, request):
         params = request['args']

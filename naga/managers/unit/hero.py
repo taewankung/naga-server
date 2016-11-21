@@ -51,6 +51,7 @@ class Hero(Unit):
         self.time_to_born = 0
         self.enemy_list = []
         self.near_enemy = []
+        self.num_current_enemy = len(self.near_enemy)
         self.enemy_sensor = EnemySensor(self,self.enemy_list)
 
     def level_up(self):
@@ -110,28 +111,27 @@ class Hero(Unit):
             elif pos_x < self.pos_x and pos_y > self.pos_y:
                 rad = rad+pi
 
-
             forge_x = self.move_speed * math.cos(rad)*0.001
             forge_y = self.move_speed * math.sin(rad)*0.001
 
-        if not isclose(pos_x,self.pos_x,1e-01) and self.pos_x < 1000 and self.pos_x > 0:
+        if not isclose(pos_x,self.pos_x,1e-01) and self.pos_x < 1000 and self.pos_x > -1:
             self.pos_x += forge_x
         else:
             finish_x = True
-        if not isclose(self.pos_y,pos_y,1e-01) and self.pos_y < 1000 and self.pos_y > 0:
+        if not isclose(self.pos_y,pos_y,1e-01) and self.pos_y < 1000 and self.pos_y >= -1:
             self.pos_y += forge_y
         else:
             finish_y = True
-        print(self.pos_y)
-        print("FINSH X " + str(finish_x))
-        print("FINISH Y " + str(finish_y))
         if finish_y and finish_x:
             complete = True
 #/////////////check enemy///////////////////
-        old_enemy = self.near_enemy
+        num_old_enemy = self.num_current_enemy
         self.near_enemy = self.enemy_sensor.scan()
-        if old_enemy != self.near_enemy:
+        self.num_current_enemy = len(self.near_enemy)
+        if num_old_enemy < self.num_current_enemy:
             self.act_status["found_event"]="found_enemy"
+        elif self.num_current_enemy ==0:
+            self.act_status["found_event"]=""
         return complete
         #  if finish_x and finish_y:
             #  break
@@ -173,5 +173,6 @@ class Hero(Unit):
                 current_exp=self.current_exp,
                 move_status=self.move_status,
                 act_status=self.act_status,
+                near_enemy=[enemy.to_data_dict() for enemy in self.near_enemy],
                 time_to_born=self.time_to_born)
         return result

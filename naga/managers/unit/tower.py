@@ -6,4 +6,3 @@ class Tower(Building):
 
     def attack(self,enemy):
         pass
-
