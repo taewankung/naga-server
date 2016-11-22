@@ -108,6 +108,7 @@ class GameScheduler(threading.Thread):
                                     player.client_id,
                                     self.naga_game
                                     )
+            player.command =dict()
         #  self.lock.release();
 
 class NagaGame(threading.Thread):
