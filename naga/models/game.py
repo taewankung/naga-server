@@ -48,7 +48,6 @@ class Hero(me.Document):
     move_speed = me.IntField(required=True)
     skills = me.ListField(me.EmbeddedDocumentField(HeroSkill))
 
-
 class Creep(me.Document):
     meta = {'collection': 'creeps'}
 
@@ -62,7 +61,7 @@ class Creep(me.Document):
     armor = me.IntField(required=True)
     magic_resis = me.IntField(required=True)
     move_speed = me.IntField(required=True)
-    damage_speed = me.IntField(required=True)
+    damage_speed = me.FloatField(required=True)
     money = me.IntField(required=True)
     position_x = me.IntField(required=True)
     position_y = me.IntField(required=True)
@@ -73,11 +72,11 @@ class Tower(me.Document):
     name = me.StringField(max_length=100, required=True)
     hp = me.IntField(required=True)
     mana = me.IntField(required=True)
-    hp_regen = me.IntField(required=True)
-    mana_regen = me.IntField(required=True)
+    hp_regen = me.FloatField(required=True)
+    mana_regen = me.FloatField(required=True)
     damage = me.IntField(required=True)
     armor = me.IntField(required=True)
-    damage_speed = me.IntField(required=True)
+    damage_speed = me.FloatField(required=True)
     magic_resis = me.IntField(required=True)
     damage_range = me.FloatField(required=True)
     cost = me.IntField(required=True)
@@ -87,21 +86,25 @@ class Tower(me.Document):
 class Item(me.Document):
     meta = {'collection': 'items'}
 
+    description = me.StringField(max_length=500, required=True)
     name = me.StringField(max_length=100, required=True)
-    describtion = me.StringField(max_length=500, required=True)
-    damage = me.IntField(required=True)
+    type = me.IntField(required=True)
+    type_description = me.StringField(required=True)
+    price = me.IntField(required=True)
+    buff_description = me.StringField(max_length=500,required=True)
+    buff_name = me.StringField(max_length=20,required=True)
+    effect_description= me.StringField(max_length=500,required=True)
+    max_hp = me.IntField(required=True)
+    max_mana = me.IntField(required=True)
     magic = me.IntField(required=True)
-    hp = me.IntField(required=True)
-    hp_regen = me.IntField(required=True)
-    mana = me.IntField(required=True)
-    mana_regen = me.IntField(required=True)
-    cooldown_skills_reduce = me.IntField(required=True)
-    buffs_armor = me.IntField(required=True)
-    buffs_magic = me.IntField(required=True)
-    damage_speed = me.IntField(required=True)
+    damage = me.IntField(required=True)
     move_speed = me.IntField(required=True)
-    cirtical_damage = me.FloatField(required=True)
-    cost = me.IntField(required=True)
-
-
+    damage_speed = me.FloatField(required=True)
+    critical_chance = me.FloatField(required=True)
+    armor = me.IntField(required=True)
+    magic_resist = me.IntField(required=True)
+    current_hp = me.FloatField(required=True)
+    current_mana = me.FloatField(required=True)
+    hp_regen = me.FloatField(required=True)
+    mana_regen = me.FloatField(required=True)
 

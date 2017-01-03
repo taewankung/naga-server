@@ -1,0 +1,23 @@
+{
+    "description":"กล่องลกลับไม่รู้ที่มาว่าสร้างได้จากสิ่งใดแต่กล่าวกันว่าสิ่งใช้สร้างคือ กล่องเก็บวิญญาณที่มากพอทำให้แปลสภาพกลายเป็นกล่อง Pandora",
+    "name":"Pandora box",
+    "type":3,
+    "type_description":"Special Equipment",
+    "effect_description":"Max Hp+500\nMax Mana+500\nMagic+200\nArmor+10\nMagic_resistant+60\n",
+    "buff_description":"",
+    "buff_name":"",
+    "max_hp":500,
+    "max_mana":500,
+    "magic":200,
+    "damage":0,
+    "move_speed":0,
+    "damage_speed":0,
+    "critical_chance":0,
+    "armor":10,
+    "magic_resist":60,
+    "current_hp":0,
+    "current_mana":0,
+    "hp_regen":0,
+    "mana_regen":0,
+    "price":0
+}

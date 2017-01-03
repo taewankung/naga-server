@@ -1,0 +1,23 @@
+{
+    "description":"ถุงมือพิศดารของ Loki เทพแห่งการหลอกลวง",
+    "name":"Loki's Grove",
+    "type":3,
+    "type_description":"Special Equipment",
+    "effect_description":"สามารถปรับเปลี่ยนพลังกาย,พลังเวทย์ และ เพิ่มทั้งสองด้านเท่ากันได้",
+    "buff_description":"เปลี่ยนแปลงได้ดั่งใจคิด",
+    "buff_name":"Loki Status",
+    "max_hp":0,
+    "max_mana":0,
+    "magic":0,
+    "damage":0,
+    "move_speed":0,
+    "damage_speed":-0.1,
+    "critical_chance":0,
+    "armor":0,
+    "magic_resist":0,
+    "current_hp":0,
+    "current_mana":0,
+    "hp_regen":0,
+    "mana_regen":0,
+    "price":200
+}

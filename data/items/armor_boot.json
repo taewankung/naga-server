@@ -1,0 +1,23 @@
+{
+    "description":"เกราะเท้าที่สามารถปกป้องผู้สวมใส่จากการต่อสู้กับศรัตรู",
+    "name":"Armor Boot",
+    "type":3,
+    "type_description":"Special Equipment",
+    "effect_description":"Armor+10\nMove speed+70\nPassive: Tank master\n\tลด damage ที่ได้รับจากศัตรู 5%",
+    "buff_description":"ลด damage ที่ได้รับจากศรัตรู 5%",
+    "buff_name":"Tank Master",
+    "max_hp":0,
+    "max_mana":0,
+    "magic":0,
+    "damage":20,
+    "move_speed":70,
+    "damage_speed":-0.15,
+    "critical_chance":0,
+    "armor":10,
+    "magic_resist":0,
+    "current_hp":0,
+    "current_mana":0,
+    "hp_regen":0,
+    "mana_regen":0,
+    "price":450
+}

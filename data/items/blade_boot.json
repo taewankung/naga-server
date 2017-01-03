@@ -1,0 +1,23 @@
+{
+    "description":"รองเท้าที่เก็บซ้อนอาวุธลับทำให้การโจมตีของผู้ส่วใส่มีประสิทธิภาพมากขึ้น",
+    "name":"blade boot",
+    "type":3,
+    "type_description":"Special Equipment",
+    "effect_description":"Move speed + 75\nDamage+20\nAttack speed -0.15s",
+    "buff_description":"",
+    "buff_name":"",
+    "max_hp":0,
+    "max_mana":0,
+    "magic":0,
+    "damage":20,
+    "move_speed":75,
+    "damage_speed":-0.15,
+    "critical_chance":0,
+    "armor":0,
+    "magic_resist":0,
+    "current_hp":0,
+    "current_mana":0,
+    "hp_regen":0,
+    "mana_regen":0,
+    "price":500
+}

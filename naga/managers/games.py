@@ -50,6 +50,15 @@ class GameResponse:
 
 ROUND_CHECK = 0.001
 
+def command_action(hero,command,naga_game):
+    compleate= False
+    #print(command['action'])
+    if command['action'] == "move":
+        compleate = hero.move(command["target_pos_x"],command["target_pos_y"])
+    if command['action'] == "attack":
+        compleate = hero.attack(command["target"])
+    return compleate
+
 class GameScheduler(threading.Thread):
     def __init__(self,naga_game):
         super().__init__()
@@ -77,11 +86,13 @@ class GameScheduler(threading.Thread):
             hero = self.naga_game.game_space.hero_team1[player.id]
         elif player.id in self.naga_game.game_space.hero_team2:
             hero = self.naga_game.game_space.hero_team2[player.id]
-        command_action={
-                        "move":hero.move(command["target_pos_x"],command["target_pos_y"]),
-                       }
+        #  command_action={
+                        #  "move":hero.move(command["target_pos_x"],command["target_pos_y"]),
+                        #  "attack":print('xxx')
+                       #  }
         #  self.lock.acquire()
         if hero.act_status["found_event"] !="":
+            #print(hero.act_status["found_event"])
             args = dict(msg=hero.act_status["found_event"])
             response = GameResponse(method='complete_command',
                                     response_type='owner',
@@ -96,7 +107,7 @@ class GameScheduler(threading.Thread):
 
 
 #bug send many time; resolve with check number of sending
-        if command_action[command["action"]]:
+        if command_action(hero,command,self.naga_game):
             args = dict(msg=command["msg"])
             print(player.client_id+" "+command["msg"])
             response = GameResponse(method='complete_command',
@@ -124,40 +135,42 @@ class NagaGame(threading.Thread):
         self.game_controller = game_controller
         self.game_scheduler = GameScheduler(self)
         self.lock = threading.Lock()
+        self.spawn_time = 0
 
         self.player_executors = dict()
 
     def run(self):
-        count = 0;
+        count = 0
+        status = ''
         while self.status != 'stop':
             if self.status == 'play':
                 if count ==0:
                     self.game_scheduler.start()
                     count = count+1
-                #  diff_time = datetime.datetime.now() - self.ready_time
-                #  if count==0:
-                    #  self.scheduler.run()
-                    #  count +=1
-                #  else:
-                    #  count += 1
-                    #  print(count)
-                    #  if(count==14999):
-                        #  count=0
-                #  print(diff_time.seconds)
-                #  if diff_time.seconds % 15 == 0 and diff_time.seconds > 0:
-                    #  if count == 0:
-                      #  print('creat_creep')
-                        #  self.game_space.create_creep()
-                        #  count += 1;
-                    #  self.game_controller.response_all(self.update_game(),self)
-                #  else:
-                    #  count = 0;
-                #  self.scheduler_table_run()
-                #  for creep_id in self.game_space.creep_team1:
-                    #  creep = self.game_space.creep_team1[creep_id]
-                    #  creep.move(500,500)
-                  #  print( "{0} {1} ".format(creep.pos_x,creep.pos_y))
+
+#///////////////Spawn Creep//////////////////////
+                if self.spawn_time > 15:
+                    self.spawn_time = 0
+                    print('creat_creep')
+                    self.game_space.create_creep()
+                else:
+                    self.spawn_time = self.spawn_time + ROUND_CHECK
+
+#///////////////Creep Action////////////////////
+                for creep_id in self.game_space.creep_team1:
+                    creep = self.game_space.creep_team1[creep_id]
+                    creep.move(500,500)
+
+#///////////////Tower Action////////////////////
+                for tw in self.game_space.tower_team2:
+                    tower = self.game_space.tower_team2[tw]
+                    tower.update_enemy()
+                    tower.attack()
+
+#///////////////Update Game/////////////////////
+                self.game_space.check_status_all_unit()
                 self.game_controller.response_all(self.update_game(),self)
+
             time.sleep(ROUND_CHECK)
 
     def update(self, request):
@@ -166,7 +179,7 @@ class NagaGame(threading.Thread):
     def spawn_creep(self):
         self.game_space.create_creep()
         print("spawn")
-        self.game_controller.response_all(self.update_game(),self)
+        #self.game_controller.response_all(self.update_game(),self)
 
     def ready(self, request):
         player = request['player']
@@ -174,12 +187,11 @@ class NagaGame(threading.Thread):
         player_ready_count = len([p for p in self.players if p.ready])
 
         print("ready count:", player_ready_count)
-        self.status = 'play'
         self.ready_time = datetime.datetime.now()
         self.game_space.load_unit()
         if player_ready_count != len(self.players):
             return
-
+        self.status = 'play'
 
         response = GameResponse(method='start_game', qos=1)
         return response
@@ -216,13 +228,11 @@ class NagaGame(threading.Thread):
     def move_hero(self, request):
         #self.lock.acquire()
         params = request['args']
-
         msg = params['msg']
         #  print(request)
         x = params['x']
         y = params['y']
         player_r = request['player']
-#        print(player.id)
         if player_r.id in self.game_space.hero_team1:
             hero = self.game_space.hero_team1[player_r.id]
         if player_r.id in self.game_space.hero_team2:
@@ -233,22 +243,26 @@ class NagaGame(threading.Thread):
                                 #current_pos=(hero.pos_x,hero.pos_y),
                                 target_pos_x=x,
                                 target_pos_y=y,
-                                msg = msg
+                                target="",
+                                msg=msg
                                 )
         #self.lock.release();
-        #  print("hero {0}: {1},{2}",player.id ,hero.pos_x,hero.pos_y)
-#        args = dict(x=x, y=y, player_id=player_r.id)
-
-        #  response = GameResponse(method='move_hero',
-                #  args=args,
-                #  response_type='other')
-
-        #  return response
 
     def attack(self,request):
-        target = request["args"]["target"]
-        if target != []:
-            print(str(request["player"].id)+ "attack:"+str(target["name"]))
+        target_enemy = request["args"]["target"]
+        msg = request['args']['msg']
+#        print(msg)
+        player_r = request['player']
+#        print(target)
+        if target_enemy != []:
+            #print(str(request["player"].id)+ " will attack:"+str(target_enemy["name"]))
+            for p in self.players:
+                if p.client_id == player_r.client_id:
+                    p.command = dict(action="attack",
+                                     target=str(target_enemy["name"]),
+                                     msg=msg
+                                    )
+
 
     def skill_action(self, request):
         params = request['args']

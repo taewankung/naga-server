@@ -9,7 +9,8 @@ class Unit:
                 position_x = 0,
                 position_y = 0,
                 unit_range = 20,
-                id_controller = "system" #id_controller owner of unit for controll unit
+                id_controller = "system", #id_controller owner of unit for controll unit
+                item_list = []
                 ):
 
         self.id = str(uuid.uuid4())
@@ -31,6 +32,7 @@ class Unit:
         self.range = unit_range
         self.id_controller = id_controller
         self.alive = True
+        self.item_list = item_list
 
     def get_current_hp(self):
         return self.current_hp

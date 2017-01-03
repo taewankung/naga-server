@@ -1,0 +1,23 @@
+{
+    "description":"ผู้ถือครองไอเทมชิ้นนี้ะกลายเป็นผู้สะสมวิญญาณตามเสียงของกล่องที่กระหายวิญญาณของผู้วายชน และ กล่องจะตอบแทนผู้ครองครองมันอย่างคุ่มค่าเมื่อมันพอใจ",
+    "name":"Soul Box",
+    "type":0,
+    "type_description":"equipment",
+    "effect_description":"ได้รับบัฟ Soul Collector\nmagic resist+50",
+    "buff_description":"เมื่อสะสมวิญญาณครบ 100 ดวงจากการสังหาญศรัตรูไอเทมชิ้นนี้ะเปลี่ยนเป็นกล่อง Pandora แต่ถ้าหากตายในการต่อสู้ดวงวิญญาณที่สะสมจะหนีหายไป 10 ดวง วิญาณที่สะสมจะทำให้ผู้สะสมมีพลังเพิ่มขึ้น",
+    "buff_name":"Soul Collector",
+    "max_hp":0,
+    "max_mana":0,
+    "magic":0,
+    "damage":0,
+    "move_speed":0,
+    "damage_speed":0,
+    "critical_chance":0,
+    "armor":0,
+    "magic_resist":50,
+    "current_hp":0,
+    "current_mana":0,
+    "hp_regen":0,
+    "mana_regen":0,
+    "price":500
+}

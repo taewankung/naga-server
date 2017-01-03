@@ -1,0 +1,23 @@
+{
+    "description":"มีดทั่วไปที่มีความคมและน้ำหนักเบาเหมาะสำหรับผู้ที่ต้องการความเร็วในการจู่โจม",
+    "name":"Knife",
+    "type":0,
+    "type_description":"equipment",
+    "effect_description":"Damage+5\nAttack speed -0.1",
+    "buff_description":"",
+    "buff_name":"",
+    "max_hp":0,
+    "max_mana":0,
+    "magic":0,
+    "damage":5,
+    "move_speed":0,
+    "damage_speed":-0.1,
+    "critical_chance":0,
+    "armor":0,
+    "magic_resist":0,
+    "current_hp":0,
+    "current_mana":0,
+    "hp_regen":0,
+    "mana_regen":0,
+    "price":"450"
+}

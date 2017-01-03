@@ -1,0 +1,24 @@
+{
+    "description":"อัญมณีสีเขียวที่มอบพลังกายและพลังเวทย์แก่ผู้ครอบครอง",
+    "name":"Emeral",
+    "type":0,
+    "type_description":"equipment",
+    "effect_description":"Max hp+250\nMana+250",
+    "buff_description":"",
+    "buff_name":"",
+    "max_hp":250,
+    "max_mana":250,
+    "magic":0,
+    "damage":0,
+    "move_speed":0,
+    "damage_speed":0,
+    "critical_chance":0,
+    "armor":0,
+    "magic_resist":0,
+    "current_hp":0,
+    "current_mana":0,
+    "hp_regen":0,
+    "mana_regen":0,
+    "price":400
+
+}

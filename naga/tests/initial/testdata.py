@@ -28,7 +28,7 @@ class DataCreepTest():
     def __init__(self):
 
         settings = {
-                    'mongodb.db_name':'apmn',
+                    'mongodb.db_name':'naga',
                     'mongodb.host': 'localhost'
                     }
         models.initial(settings)
@@ -46,7 +46,7 @@ class DataTowerTest():
     def __init__(self):
 
         settings = {
-                    'mongodb.db_name':'apmn',
+                    'mongodb.db_name':'naga',
                     'mongodb.host': 'localhost'
                     }
         models.initial(settings)

@@ -35,14 +35,17 @@ class Hero(Unit):
         self.magic = self.data_unit.magic
         self.magic_resis = self.data_unit.magic_resis
         self.damage_speed = self.data_unit.damage_speed
+        self.current_speed_dmg = 0
         self.move_speed = self.data_unit.move_speed
         self.skills = self.data_unit.skills
+        self.critical_chance = self.data_unit.damage_critical
         self.level = 1
         self.kill = 0
         self.death = 0
         self.assist = 0
         self.lasthit = 0
         self.current_exp = 0
+        self.damage_reduce = 0
         self.move_status = True
         self.act_status = dict(action="",
                                found_event=""
@@ -50,8 +53,8 @@ class Hero(Unit):
         #  self.target = None
         self.time_to_born = 0
         self.enemy_list = []
-        self.near_enemy = []
-        self.num_current_enemy = len(self.near_enemy)
+        self.near_enemy_list = []
+        self.num_current_enemy = len(self.near_enemy_list)
         self.enemy_sensor = EnemySensor(self,self.enemy_list)
 
     def level_up(self):
@@ -73,7 +76,7 @@ class Hero(Unit):
                 self.alive = True
                 self.current_hp = self.max_hp
 
-    def get_alvie(self):
+    def get_alve(self):
         self.alive = True
 
     def get_status(self):
@@ -97,6 +100,33 @@ class Hero(Unit):
                  }
         return status
 
+    def attack(self,target):
+        #  dist = math.sqrt(math.pow((self.pos_x-target.pos_x), 2)-math.pow(self.pos_x-target.pos_y,2))
+        #  if dist < self.unit_range:
+            #  target.hp = target.hp-self.damage
+        compleate = False
+        num_old_enemy = self.num_current_enemy
+        self.near_enemy_list = self.enemy_sensor.scan()
+        self.num_current_enemy = len(self.near_enemy_list)
+        for enemy in self.near_enemy_list:
+#            print(self.near_enemy_list)
+            if enemy.name == target:
+#                print('name: '+enemy.name)
+#                print('current_hp_before_attacked: {}'.format(enemy.current_hp))
+#                print('current_speed:{}'.format(self.current_speed_dmg))
+                if self.current_speed_dmg >= self.damage_speed:
+                    enemy.current_hp = enemy.current_hp - self.damage
+                 #   print('current_hp_before_attacked: {}'.format(enemy.current_hp))
+                 #   print('hey attack')
+                    self.current_speed_dmg = 0
+                else:
+                    self.current_speed_dmg = self.current_speed_dmg + 0.001;
+                if enemy.current_hp > 0:
+                    compleate = False
+                else:
+                    compleate = True
+        return compleate
+
     def move(self,pos_x,pos_y):
         finish_x = False
         finish_y = False
@@ -109,7 +139,7 @@ class Hero(Unit):
             if pos_x < self.pos_x and pos_y < self.pos_y:
                 rad = rad + pi
             elif pos_x < self.pos_x and pos_y > self.pos_y:
-                rad = rad+pi
+                rad = rad + pi
 
             forge_x = self.move_speed * math.cos(rad)*0.001
             forge_y = self.move_speed * math.sin(rad)*0.001
@@ -124,10 +154,11 @@ class Hero(Unit):
             finish_y = True
         if finish_y and finish_x:
             complete = True
+        #print('finish_y:'+str(finish_y)+' finish_x'+str(finish_x))
 #/////////////check enemy///////////////////
         num_old_enemy = self.num_current_enemy
-        self.near_enemy = self.enemy_sensor.scan()
-        self.num_current_enemy = len(self.near_enemy)
+        self.near_enemy_list = self.enemy_sensor.scan()
+        self.num_current_enemy = len(self.near_enemy_list)
         if num_old_enemy < self.num_current_enemy:
             self.act_status["found_event"]="found_enemy"
         elif self.num_current_enemy ==0:
@@ -136,9 +167,17 @@ class Hero(Unit):
         #  if finish_x and finish_y:
             #  break
 
-    def attack(self,target_unit):
-        print("Attack plz")
-        pass
+    def upgrade_skill(self,skill_number):
+        print('upgrade skill:{}'.format(self.data_unit['skills'][skill_number]))
+
+    def use_skill(self,skill_number):
+        print('using skill:{}'.format(self.data_unit['skills'][skill_number]))
+
+    def sell_item(self,item):
+        print('sell_item')
+
+    def buy_item(self,item):
+        print('buy_item')
 
     def to_data_dict(self):
         result = dict(take_damaged=self.take_damaged,
@@ -173,6 +212,6 @@ class Hero(Unit):
                 current_exp=self.current_exp,
                 move_status=self.move_status,
                 act_status=self.act_status,
-                near_enemy=[enemy.to_data_dict() for enemy in self.near_enemy],
+                near_enemy_list=[enemy.to_data_dict() for enemy in self.near_enemy_list],
                 time_to_born=self.time_to_born)
         return result

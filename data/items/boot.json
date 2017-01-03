@@ -1,0 +1,23 @@
+{
+    "description":"รองเท้าที่มอบความสะบายแก่ผู้ส่วมใส่ทำให้เขาเคลื่อนที่ได้คล่องแคล่วขึ้น",
+    "name":"Boot",
+    "type":0,
+    "type_description":"equipment",
+    "effect_description":"move speed+50",
+    "buff_description":"",
+    "buff_name":"",
+    "max_hp":0,
+    "max_mana":0,
+    "magic":0,
+    "damage":0,
+    "move_speed":50,
+    "damage_speed":0,
+    "critical_chance":0,
+    "armor":0,
+    "magic_resist":0,
+    "current_hp":0,
+    "current_mana":0,
+    "hp_regen":0,
+    "mana_regen":0,
+    "price":500
+}

@@ -1,0 +1,23 @@
+{
+    "description":"โล่ทั่วไปสำหรับปกป้องอันตรายจากอาวุธของศรัตรู",
+    "name":"Shild",
+    "type":0,
+    "type_description":"equipment",
+    "effect_description":"armor+5",
+    "buff_description":"",
+    "buff_name":"",
+    "max_hp":0,
+    "max_mana":0,
+    "magic":0,
+    "damage":0,
+    "move_speed":0,
+    "damage_speed":0,
+    "critical_chance":0,
+    "armor":5,
+    "magic_resist":0,
+    "current_hp":0,
+    "current_mana":0,
+    "hp_regen":0,
+    "mana_regen":0,
+    "price":250
+}

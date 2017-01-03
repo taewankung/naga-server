@@ -1,0 +1,23 @@
+{
+    "description":"ยาลึกลับที่ทำให้พลังกายกลับคืนมา",
+    "name":"Potion",
+    "type":1,
+    "type_description":"used",
+    "effect_description":"ฟื้นฝูพลังชีวิต 250 หน่วยทันที",
+    "buff_description":"",
+    "buff_name":"",
+    "max_hp":0,
+    "max_mana":0,
+    "magic":0,
+    "damage":0,
+    "move_speed":0,
+    "damage_speed":0,
+    "critical_chance":0,
+    "armor":0,
+    "magic_resist":0,
+    "current_hp":250,
+    "current_mana":0,
+    "hp_regen":0,
+    "mana_regen":0,
+    "price":100
+}
