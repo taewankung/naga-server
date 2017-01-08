@@ -1,4 +1,5 @@
 from .sensor import Sensor
+from operator import itemgetter
 import math
 class EnemySensor(Sensor):
 
@@ -7,6 +8,7 @@ class EnemySensor(Sensor):
 
     def scan(self,in_range = 50):
         unit_in_range = list()
+        near_list = list()
         #u is unit
         for u in self.unit_list:
             dist_u = math.sqrt(
@@ -14,11 +16,13 @@ class EnemySensor(Sensor):
                           pow((u.pos_y - self.unit.pos_y),2)
                           )
             if dist_u <= in_range:
-                if u not in unit_in_range:
-                    unit_in_range.append(u)
-            else:
-                if u in unit_in_range:
-                    unit_in_range.remove(u)
+                near_list.append((u,dist_u))
+                unit_in_range.append(u)
+                near_list = sorted(near_list,key=itemgetter(1))
+
+        for i in range(0,len(near_list)):
+            unit_in_range[i] = near_list[i][0]
+
         return unit_in_range
 
     def update_unit_list(self):

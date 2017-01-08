@@ -83,6 +83,8 @@ class Tower(me.Document):
     position_x = me.IntField(required=True)
     position_y = me.IntField(required=True)
 
+
+
 class Item(me.Document):
     meta = {'collection': 'items'}
 

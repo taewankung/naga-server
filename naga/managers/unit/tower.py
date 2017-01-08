@@ -10,26 +10,21 @@ class Tower(Building):
         self.near_enemy_list = []
         self.num_current_enemy = len(self.near_enemy_list)
         self.enemy_sensor = EnemySensor(self,self.enemy_list)
+        self.exp = 10
+        self.bounty = self.data_unit.cost
 
     def update_enemy(self):
         num_old_enemy = self.num_current_enemy
         self.near_enemy_list = self.enemy_sensor.scan(in_range=100)
         self.num_current_enemy = len(self.near_enemy_list)
-        #  if num_old_enemy != self.num_current_enemy:
-            #  print("!!!")
 
     def attack(self):
         num_old_enemy = self.num_current_enemy
         self.near_enemy_list = self.enemy_sensor.scan()
         self.num_current_enemy = len(self.near_enemy_list)
         if self.current_speed_dmg >= self.damage_speed:
-#            print(self.current_speed_dmg)
-#            print(self.damage_speed)
-#            print(self.enemy_list)
-#            print(self.near_enemy_list)
             if len(self.near_enemy_list) != 0:
                 self.near_enemy_list[0].current_hp = self.near_enemy_list[0].current_hp - self.damage
-                print("hero taked damage {}".format(self.near_enemy_list[0].current_hp))
             self.current_speed_dmg = 0
         else:
             self.current_speed_dmg = self.current_speed_dmg + 0.001;

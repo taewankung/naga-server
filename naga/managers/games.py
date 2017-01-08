@@ -52,11 +52,11 @@ ROUND_CHECK = 0.001
 
 def command_action(hero,command,naga_game):
     compleate= False
-    #print(command['action'])
-    if command['action'] == "move":
-        compleate = hero.move(command["target_pos_x"],command["target_pos_y"])
-    if command['action'] == "attack":
-        compleate = hero.attack(command["target"])
+    if hero.alive:
+        if command['action'] == "move":
+            compleate = hero.move(command["target_pos_x"],command["target_pos_y"])
+        if command['action'] == "attack":
+            compleate = hero.attack(command["target"])
     return compleate
 
 class GameScheduler(threading.Thread):
@@ -70,7 +70,6 @@ class GameScheduler(threading.Thread):
     def run(self):
         while self.status != 'stop':
             self.counter_send = 0
-            #print('compute')
             for p in self.naga_game.players:
                 if len(p.command) !=0:
                     self.execute(p,p.command)
@@ -80,19 +79,11 @@ class GameScheduler(threading.Thread):
         self.status = 'stop'
 
     def execute(self,player,command):
-        #print(player.id)
-        #print(self.naga_game.game_space.hero_team1)
         if player.id in self.naga_game.game_space.hero_team1:
             hero = self.naga_game.game_space.hero_team1[player.id]
         elif player.id in self.naga_game.game_space.hero_team2:
             hero = self.naga_game.game_space.hero_team2[player.id]
-        #  command_action={
-                        #  "move":hero.move(command["target_pos_x"],command["target_pos_y"]),
-                        #  "attack":print('xxx')
-                       #  }
-        #  self.lock.acquire()
         if hero.act_status["found_event"] !="":
-            #print(hero.act_status["found_event"])
             args = dict(msg=hero.act_status["found_event"])
             response = GameResponse(method='complete_command',
                                     response_type='owner',
@@ -105,8 +96,6 @@ class GameScheduler(threading.Thread):
                                     )
             hero.act_status["found_event"]=""
 
-
-#bug send many time; resolve with check number of sending
         if command_action(hero,command,self.naga_game):
             args = dict(msg=command["msg"])
             print(player.client_id+" "+command["msg"])
@@ -136,6 +125,7 @@ class NagaGame(threading.Thread):
         self.game_scheduler = GameScheduler(self)
         self.lock = threading.Lock()
         self.spawn_time = 0
+        self.gold_timer = 0
 
         self.player_executors = dict()
 
@@ -149,7 +139,7 @@ class NagaGame(threading.Thread):
                     count = count+1
 
 #///////////////Spawn Creep//////////////////////
-                if self.spawn_time > 15:
+                if self.spawn_time > 11:
                     self.spawn_time = 0
                     print('creat_creep')
                     self.game_space.create_creep()
@@ -159,18 +149,31 @@ class NagaGame(threading.Thread):
 #///////////////Creep Action////////////////////
                 for creep_id in self.game_space.creep_team1:
                     creep = self.game_space.creep_team1[creep_id]
-                    creep.move(500,500)
+                    creep.run_behavior(lane='mid_team1')
+
+                for creep_id in self.game_space.creep_team2:
+                    creep = self.game_space.creep_team2[creep_id]
+                    creep.run_behavior(lane='mid_team2')
+
 
 #///////////////Tower Action////////////////////
-                for tw in self.game_space.tower_team2:
-                    tower = self.game_space.tower_team2[tw]
+                for tw_id in self.game_space.tower_team2:
+                    tower = self.game_space.tower_team2[tw_id]
                     tower.update_enemy()
                     tower.attack()
 
+                for tw_id in self.game_space.tower_team1:
+                    tower = self.game_space.tower_team1[tw_id]
+                    tower.update_enemy()
+                    tower.attack()
 #///////////////Update Game/////////////////////
                 self.game_space.check_status_all_unit()
+                self.gold_timer += ROUND_CHECK
+                if self.gold_timer >=1:
+                    self.gold_timer = 0
+                    self.game_space.gold_per_time()
                 self.game_controller.response_all(self.update_game(),self)
-
+#                self.game_space.clear_creep_died()
             time.sleep(ROUND_CHECK)
 
     def update(self, request):

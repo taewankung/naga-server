@@ -47,6 +47,8 @@ class Hero(Unit):
         self.current_exp = 0
         self.damage_reduce = 0
         self.move_status = True
+        self.skill_point = 1
+        self.gold = 0
         self.act_status = dict(action="",
                                found_event=""
                               )
@@ -56,28 +58,40 @@ class Hero(Unit):
         self.near_enemy_list = []
         self.num_current_enemy = len(self.near_enemy_list)
         self.enemy_sensor = EnemySensor(self,self.enemy_list)
+        self.current_exp = 0
+        self.exp = 100
+        self.exp_up = [0,200,250,300,450,500,
+                       550,600,650,700,800,
+                       900,1000,1100,1150,
+                       1300,1450,1600,1750,
+                       1900,2050,2200,2350,
+                       2500,2650,2800,2950
+                      ]
 
     def level_up(self):
         if self.level <=25:
             self.level = self.level + 1
+            self.skill_point+=1
+
 
     def die(self):
         self.alive = False
-        self.time_to_born = self.level*15;
+        if self.time_to_born <=0 and not self.alive:
+            self.act_status["found_event"]="died"
+            self.time_to_born = self.level*15;
 
     def countdown_to_born(self):
         if self.time_to_born > 0:
-            self.time_to_bone -=1
+            self.time_to_born = self.time_to_born - 0.01
+        if self.time_to_born <=0:
+            print('Reborn')
+            self.reborn()
 
     def reborn(self):
         if not self.alive:
-            self.countdown_to_born()
-            if self.time_to_born ==0:
-                self.alive = True
-                self.current_hp = self.max_hp
-
-    def get_alve(self):
-        self.alive = True
+            self.alive = True
+            self.act_status["found_event"]="reborn"
+            self.current_hp = self.max_hp
 
     def get_status(self):
         status = {
@@ -101,23 +115,19 @@ class Hero(Unit):
         return status
 
     def attack(self,target):
-        #  dist = math.sqrt(math.pow((self.pos_x-target.pos_x), 2)-math.pow(self.pos_x-target.pos_y,2))
-        #  if dist < self.unit_range:
-            #  target.hp = target.hp-self.damage
         compleate = False
         num_old_enemy = self.num_current_enemy
         self.near_enemy_list = self.enemy_sensor.scan()
         self.num_current_enemy = len(self.near_enemy_list)
         for enemy in self.near_enemy_list:
-#            print(self.near_enemy_list)
             if enemy.name == target:
-#                print('name: '+enemy.name)
-#                print('current_hp_before_attacked: {}'.format(enemy.current_hp))
-#                print('current_speed:{}'.format(self.current_speed_dmg))
                 if self.current_speed_dmg >= self.damage_speed:
                     enemy.current_hp = enemy.current_hp - self.damage
-                 #   print('current_hp_before_attacked: {}'.format(enemy.current_hp))
-                 #   print('hey attack')
+                    if enemy.current_hp <=0:
+                        self.current_exp += enemy.exp
+                        self.gold += enemy.bounty
+                        if self.current_exp >= self.exp_up[self.level]:
+                            self.level_up()
                     self.current_speed_dmg = 0
                 else:
                     self.current_speed_dmg = self.current_speed_dmg + 0.001;
@@ -213,5 +223,6 @@ class Hero(Unit):
                 move_status=self.move_status,
                 act_status=self.act_status,
                 near_enemy_list=[enemy.to_data_dict() for enemy in self.near_enemy_list],
-                time_to_born=self.time_to_born)
+                time_to_born=self.time_to_born,
+                gold = self.gold)
         return result

@@ -1,0 +1,8 @@
+{
+    "team": "team1",
+    "name": "Base_team1",
+    "hp": 5000,
+    "armor": 20,
+    "position_x": 50,
+    "position_y": 50
+}

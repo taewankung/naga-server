@@ -7,12 +7,11 @@ from .scoreboard import ScoreBoard
 from . import games
 import json
 
+
 class BattleArena:
     def __init__(self, players, size_x=1000, size_y=1000):
         self.players = players
         self.heros ={}
-
-
         self.hero_team1 = {}
         self.hero_team2 = {}
         self.tower_team1 ={}
@@ -22,6 +21,12 @@ class BattleArena:
         self.nature_creep ={}
         self.scoreboard = ScoreBoard(self.hero_team1,self.hero_team2)
 
+#////////Localtion in game////////////////
+        self.game_location = {"spawn_creep_team1":(150,150),
+                               "spawn_creep_team2":(850,850)
+                              }
+
+#//////Mehod///////////////////////////
     def to_data_dict(self):
         dict_hero_team1 = {}
         battle_arena_data = dict(#players = self.players,
@@ -38,23 +43,30 @@ class BattleArena:
     def schedule(self):
         pass
 
-    def create_creep(self):
+    def create_creep(self,target='mid'):
         c = models.Creep.objects(name = "Creep").first()
         c_data = games.GameUnit(**dict(c.to_mongo()))
-        for i in range(4):
-            creep = Creep(c_data)
-            for tw_enemy in self.tower_team2:
-                creep.enemy_list.append(self.tower_team2[tw_enemy])
-            for hero in self.hero_team2:
-                creep.enemy_list.append(self.hero_team2[hero])
-            self.creep_team1[creep.id] = creep
-        for i in range(4):
-            creep = Creep(c_data)
-            for tw_enemy in self.tower_team1:
-                creep.enemy_list.append(self.tower_team1[tw_enemy])
-            for hero in self.hero_team1:
-                creep.enemy_list.append(self.hero_team1[hero])
-            self.creep_team2[creep.id] = creep
+
+        if target == 'mid':
+            for i in range(1):
+                creep = Creep(c_data)
+                creep.pos_x = self.game_location['spawn_creep_team1'][0]
+                creep.pos_y = self.game_location['spawn_creep_team1'][1]
+                for tw_enemy in self.tower_team2:
+                    creep.enemy_list.append(self.tower_team2[tw_enemy])
+                for hero in self.hero_team2:
+                    creep.enemy_list.append(self.hero_team2[hero])
+                self.creep_team1[creep.id] = creep
+
+            for i in range(1):
+                creep = Creep(c_data)
+                creep.pos_x = self.game_location['spawn_creep_team2'][0]
+                creep.pos_y = self.game_location['spawn_creep_team2'][1]
+                for tw_enemy in self.tower_team1:
+                    creep.enemy_list.append(self.tower_team1[tw_enemy])
+                for hero in self.hero_team1:
+                    creep.enemy_list.append(self.hero_team1[hero])
+                self.creep_team2[creep.id] = creep
 
 #//// add enemy for both creep  team///
         for c1 in self.creep_team1:
@@ -65,7 +77,7 @@ class BattleArena:
                 self.creep_team2[c2].enemy_list.append(self.creep_team1[c1])
 
 #//// add creep for all hero///
-        self.update_creep_for_hero()
+        self.update_creep_for_unit()
 
     def load_unit(self):
         tower_position =[
@@ -94,6 +106,7 @@ class BattleArena:
                 for tw_enemy in self.tower_team2:
                     hero.enemy_list.append(self.tower_team2[tw_enemy])
                     self.tower_team2[tw_enemy].enemy_list.append(hero)
+
                 for hero_enemy in self.hero_team2:
                     hero.enemy_list.append(self.hero_team2[hero_enemy])
 
@@ -102,18 +115,23 @@ class BattleArena:
                 hero = self.hero_team2[player.id]
                 for tw_enemy in self.tower_team1:
                     hero.enemy_list.append(self.tower_team1[tw_enemy])
+                    self.tower_team1[tw_enemy].enemy_list.append(hero)
+
                 for hero_enemy in self.hero_team1:
                     hero.enemy_list.append(self.hero_team1[hero_enemy])
+
         print("load complete")
 
     def check_status_all_unit(self):
+#//////////////check hero///////////////////////
         for hero_id in self.hero_team1:
             hero = self.hero_team1[hero_id]
             if hero.current_hp <= 0:
                 #print('now {0} {1},{2}'.format(hero.name,hero.pos_x,hero.pos_y))
                 hero.pos_x = 50
                 hero.pos_y = 50
-                hero.alive = False
+                hero.die()
+                hero.countdown_to_born()
 
         for hero_id in self.hero_team2:
             hero = self.hero_team2[hero_id]
@@ -121,32 +139,113 @@ class BattleArena:
                 #print('now {0} {1},{2}'.format(hero.name,hero.pos_x,hero.pos_y))
                 hero.pos_x = 50
                 hero.pos_y = 50
-                hero.alive = False
-
+                hero.die()
+                hero.countdown_to_born()
+#//////////////////check creep////////////////
         for creep_id in self.creep_team1:
             creep = self.creep_team1[creep_id]
-            if creep.current_hp <=0:
-                self.creep_team1.pop(creep)
+            if creep.current_hp <= 0:
+                creep.alive = False
+                creep.pos_x = -20
+                creep.pos_y = -20
+                creep.stop()
 
         for creep_id in self.creep_team2:
             creep = self.creep_team2[creep_id]
-            if creep.current_hp <=0:
-                self.creep_team2.pop(creep)
+            if creep.current_hp <= 0:
+                creep.alive = False
+                creep.pos_x = -20
+                creep.pos_y = -20
+                creep.stop()
+#///////////////check tower//////////////////
+        for tw_id in self.tower_team1:
+            tower = self.tower_team1[tw_id]
+            if tower.current_hp <= 0:
+                tower.alive = False
+                tower.pos_x = -200
+                tower.pos_y = -200
 
-        for tower_id in self.tower_team1:
-            tower = self.tower_team1[tower_id]
-            if tower.current_hp <=0:
-                self.tower_team1.pop(tower)
+        for tw_id in self.tower_team2:
+            tower = self.tower_team2[tw_id]
+            if tower.current_hp <= 0:
+                tower.alive = False
+                tower.pos_x = -200
+                tower.pos_y = -200
 
-    def update_creep_for_hero(self):
-        for hero_id in self.hero_team1:
-            hero = self.hero_team1[hero_id]
-            for enemy in self.creep_team2:
-                hero.enemy_list.append(self.creep_team2[enemy])
-        for hero_id in self.hero_team2:
-            hero = self.hero_team2[hero_id]
-            for enemy in self.creep_team1:
-                hero.enemy_list.append(self.creep_team1[enemy])
+    def clear_creep_died(self):
+        new_dict = {}
+        for creep_id in self.creep_team1:
+            creep = self.creep_team1[creep_id]
+            if not creep.alive:
+                print('id:{0}:{1}'.format(creep.id,creep_id))
+                for hero_id in self.hero_team2:
+                    hero = self.hero_team2[hero_id]
+                    hero.enemy_list.remove(creep)
+
+                for tw_id in self.tower_team2:
+                    tower = self.tower_team2[tw_id]
+                    tower.enemy_list.remove(creep)
+
+                for creep_id in self.creep_team2:
+                    creep_op = self.creep_team2[creep_id]
+                    creep_op.enemy_list.remove(creep)
+            else:
+                new_dict[creep_id] = creep
+
+        self.creep_team1 = new_dict
+        new_dict = {}
+        for creep_id in self.creep_team2:
+            creep = self.creep_team2[creep_id]
+            if not creep.alive:
+                print('id:{0}:{1}'.format(creep_id,creep.alive))
+                for hero_id in self.hero_team1:
+                    hero = self.hero_team1[hero_id]
+                    hero.enemy_list.remove(creep)
+
+                for tw_id in self.tower_team1:
+                    tower = self.tower_team1[tw_id]
+                    tower.enemy_list.remove(creep)
+
+                for creep_id in self.creep_team1:
+                    creep_op = self.creep_team1[creep_id]
+                    creep_op.enemy_list.remove(creep)
+            else:
+                new_dict[creep_id] = creep
+        self.creep_team2 = new_dict
+
+    def update_creep_for_unit(self):
+        for c_id in self.creep_team2:
+            creep = self.creep_team2[c_id]
+            for hero_id in self.hero_team1:
+                hero = self.hero_team1[hero_id]
+                hero.enemy_list.append(creep)
+                hero.enemy_list=list(set(hero.enemy_list))
+
+            for tw_id in self.tower_team1:
+                tower = self.tower_team1[tw_id]
+                tower.enemy_list.append(creep)
+                tower.enemy_list = list(set(tower.enemy_list))
+
+        for c_id in self.creep_team1:
+            creep = self.creep_team1[c_id]
+            for hero_id in self.hero_team2:
+                hero = self.hero_team2[hero_id]
+                hero.enemy_list.append(creep)
+                hero.enemy_list=list(set(hero.enemy_list))
+
+            for tw_id in self.tower_team2:
+                tower = self.tower_team2[tw_id]
+                tower.enemy_list.append(creep)
+                tower.enemy_list = list(set(tower.enemy_list))
+
+    def gold_per_time(self):
+        for h in self.hero_team1:
+            hero = self.hero_team1[h]
+            hero.gold += 1
+
+        for h in self.hero_team2:
+            hero = slef.hero_team2[h]
+            hero.gold += 1
 
     def get_hero_team(self,team):
         if team == "team1":
