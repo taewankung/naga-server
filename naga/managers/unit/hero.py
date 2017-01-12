@@ -7,7 +7,9 @@
 
 from .unit import Unit
 from .sensor.enemy_sensor import EnemySensor
+from .sensor.team_sensor import TeamSensor
 import math
+from .tower import Tower
 
 def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
     return abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
@@ -49,6 +51,7 @@ class Hero(Unit):
         self.move_status = True
         self.skill_point = 1
         self.gold = 0
+        self.bounty = 300
         self.act_status = dict(action="",
                                found_event=""
                               )
@@ -67,25 +70,125 @@ class Hero(Unit):
                        1900,2050,2200,2350,
                        2500,2650,2800,2950
                       ]
+        self.max_exp = self.exp_up[self.level]
+#///////////////// skill attibute/////////////////////////
+        self.skill_level=[0,0,0,0]
+        self.current_cooldown=[0,0,0,0]
+        self.skills = self.data_unit.skills
+#///////////////// team attibute/////////////////////////
+        self.team_list =[]
+        self.near_team_list =[]
+        self.num_current_team = len(self.near_team_list)
+        self.team_sensor = TeamSensor(self,self.team_list)
 
     def level_up(self):
         if self.level <=25:
             self.level = self.level + 1
-            self.skill_point+=1
+            self.skill_point +=1
+            self.max_exp = self.exp_up[self.level]
 
+    def use_skill(self,skill_number,target=''):
+        code = 0
+        used = False
+        if self.skill_level[skill_number] != 0:
+            skill_level = self.skill_level[skill_number]
+            skill = self.skills[skill_number]
+            if skill['skill_type'] != 'buff_passive':
+                if skill['skill_type'] == 'attack' and self.current_cooldown[skill_number]<=0 and self.current_mana >= skill['used_mana'][skill_level]:
+                    for enemy in self.near_enemy_list:
+                        if enemy.name == target:
+                            enemy.current_hp = enemy.current_hp - skill['damage'][skill_level]
+                            enemy.current_hp = enemy.current_hp - skill['magic'][skill_level]
+                            self.current_cooldown[skill_number]= skill['cooldown'][skill_level]
+                            self.current_mana -= skill['used_mana'][skill_level]
+                            code = 1
+                            code = self.check_enemy_die(enemy)
+                            used = True
+                elif skill['skill_type'] == 'support':
+                    code = 2
+                    used = True
+            if code == 0:
+                if self.act_status["found_event"] !="can_not_use_skill":
+                    self.act_status["found_event"]="can_not_use_skill"
+            elif code == 1:
+                if self.act_status["found_event"] !="battle":
+                    self.act_status["found_event"]="battle"
+            elif code == 2:
+                self.act_status["found_event"]="suport team"
+            elif code == 3:
+                self.act_status["found_event"]=""
+            pass
+        return used
+            #print('do not upgraded skill')
+#        print('using skill:{0}'.format(skill['skill_type']))
+
+
+    def upgrade_skill(self,skill_num):
+        if self.skill_point >0:
+            self.skill_point -=1
+            self.skill_level[skill_num] =+1
+#            print('{0}: {1}'.format(self.name,self.skill_point))
+            skill = self.skills[skill_num]
+            level = self.skill_level[skill_num] =+1
+            if skill['skill_type'] == 'buff_passive':
+                if self.current_hp == self.max_hp:
+                    self.max_hp += skill['buffs_hp'][level-1]
+                    self.current_hp = self.max_hp
+                if self.current_mana == self.max_mana:
+#                    print('max_mana before: {0}'.format(self.max_mana))
+                    self.max_mana += skill['buffs_mana'][level-1]
+                    self.current_mana = self.max_mana
+                elif self.current_mana < self.max_mana:
+                    if self.current_mana+ 0.1*self.max_mana <= self.max_mana:
+                        self.current_mana += 0.1*self.max_mana
+                    else:
+                        self.current_mana = self.max_mana
+                self.damage_speed += skill['attack_speed'][level-1]
+                self.armor += skill['buffs_armor'][level-1]
+                self.damage += skill['buffs_damage'][level-1]
+#                print('{0}: {1}'.format(self.name,self.max_mana))
 
     def die(self):
         self.alive = False
         if self.time_to_born <=0 and not self.alive:
             self.act_status["found_event"]="died"
             self.time_to_born = self.level*15;
+            self.current_cooldown = [0,0,0,0]
+            self.current_mana = self.max_mana
 
-    def countdown_to_born(self):
+#//////////////update near team////////////////////
+    def scan_team_unit(self):
+        num_old_team = self.num_current_team
+        self.near_team_list = self.team_sensor.scan()
+        self.num_current_enemy = len(self.near_enemy_list)
+        return num_old_team
+
+#/////////////update enemy ///////////////////
+    def scan_enemy_unit(self):
+        num_old_enemy = self.num_current_enemy
+        self.near_enemy_list = self.enemy_sensor.scan()
+        self.num_current_enemy = len(self.near_enemy_list)
+        if num_old_enemy < self.num_current_enemy:
+            self.act_status["found_event"]="found_enemy"
+#            print('{0}:{1}'.format(self.name,[e.name for e in self.enemy_list]))
+        elif self.num_current_enemy ==0:
+            self.act_status["found_event"]=""
+        return num_old_enemy
+        #  if complete:
+            #  print('{0}:{1}'.format(self.pos_x,self.pos_y))
+
+    def countdown_to_born(self,time=0.001):
         if self.time_to_born > 0:
-            self.time_to_born = self.time_to_born - 0.01
-        if self.time_to_born <=0:
+            self.time_to_born = self.time_to_born - time
+        if self.time_to_born <= 0 :
             print('Reborn')
             self.reborn()
+
+    def count_cooldown(self,time=0.001):
+        for cd in range(0,3):
+            if self.current_cooldown[cd] > 0:
+#                print(self.current_cooldown)
+                self.current_cooldown[cd] = self.current_cooldown[cd] - time
 
     def reborn(self):
         if not self.alive:
@@ -123,11 +226,7 @@ class Hero(Unit):
             if enemy.name == target:
                 if self.current_speed_dmg >= self.damage_speed:
                     enemy.current_hp = enemy.current_hp - self.damage
-                    if enemy.current_hp <=0:
-                        self.current_exp += enemy.exp
-                        self.gold += enemy.bounty
-                        if self.current_exp >= self.exp_up[self.level]:
-                            self.level_up()
+                    self.check_enemy_die(enemy)
                     self.current_speed_dmg = 0
                 else:
                     self.current_speed_dmg = self.current_speed_dmg + 0.001;
@@ -135,7 +234,21 @@ class Hero(Unit):
                     compleate = False
                 else:
                     compleate = True
+        if not compleate and self.act_status["found_event"] !="battle":
+                self.act_status["found_event"]="battle"
+        else:
+            self.act_status["found_event"]=""
         return compleate
+
+    def check_enemy_die(self,enemy):
+        if enemy.current_hp <=0:
+            self.current_exp += enemy.exp
+            self.gold += enemy.bounty
+            if self.current_exp >= self.max_exp:
+                self.current_exp = self.current - self.exp_max
+                self.level_up()
+                return 3
+            return 1
 
     def move(self,pos_x,pos_y):
         finish_x = False
@@ -154,34 +267,20 @@ class Hero(Unit):
             forge_x = self.move_speed * math.cos(rad)*0.001
             forge_y = self.move_speed * math.sin(rad)*0.001
 
-        if not isclose(pos_x,self.pos_x,1e-01) and self.pos_x < 1000 and self.pos_x > -1:
+        if not isclose(pos_x,self.pos_x,1e-2) and self.pos_x < 1000 and self.pos_x > -1:
             self.pos_x += forge_x
         else:
             finish_x = True
-        if not isclose(self.pos_y,pos_y,1e-01) and self.pos_y < 1000 and self.pos_y >= -1:
+        if not isclose(self.pos_y,pos_y,1e-2) and self.pos_y < 1000 and self.pos_y >= -1:
             self.pos_y += forge_y
         else:
             finish_y = True
         if finish_y and finish_x:
             complete = True
-        #print('finish_y:'+str(finish_y)+' finish_x'+str(finish_x))
-#/////////////check enemy///////////////////
-        num_old_enemy = self.num_current_enemy
-        self.near_enemy_list = self.enemy_sensor.scan()
-        self.num_current_enemy = len(self.near_enemy_list)
-        if num_old_enemy < self.num_current_enemy:
-            self.act_status["found_event"]="found_enemy"
-        elif self.num_current_enemy ==0:
-            self.act_status["found_event"]=""
+        self.scan_enemy_unit()
         return complete
         #  if finish_x and finish_y:
             #  break
-
-    def upgrade_skill(self,skill_number):
-        print('upgrade skill:{}'.format(self.data_unit['skills'][skill_number]))
-
-    def use_skill(self,skill_number):
-        print('using skill:{}'.format(self.data_unit['skills'][skill_number]))
 
     def sell_item(self,item):
         print('sell_item')
@@ -215,6 +314,8 @@ class Hero(Unit):
                 damage_speed=self.damage_speed,
                 move_speed=self.move_speed,
                 skills=self.skills,
+                skill_point= self.skill_point,
+                skill_cooldown = [cd for cd in self.current_cooldown],
                 kill=self.skills,
                 death=self.death,
                 assist=self.assist,
@@ -222,7 +323,7 @@ class Hero(Unit):
                 current_exp=self.current_exp,
                 move_status=self.move_status,
                 act_status=self.act_status,
-                near_enemy_list=[enemy.to_data_dict() for enemy in self.near_enemy_list],
+                near_enemy_list=[enemy.name for enemy in self.near_enemy_list],
                 time_to_born=self.time_to_born,
                 gold = self.gold)
         return result

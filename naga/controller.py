@@ -24,7 +24,7 @@ class NagaController:
 
         u2 = models.User.objects(username='client1').first()
         p2 = Player('client1', u2, 'client1')
-
+        p2.team ='team2'
 #        u3 = models.User.objects(username='client3').first()
 #        p3 = Player('client3', u3, 'client3')
 
@@ -35,9 +35,13 @@ class NagaController:
         self.room.rooms[test_room_id] = game
         hero = models.Hero.objects(name='Sinsamut').first()
         hero2 = models.Hero.objects(name='Apaimanee').first()
+        hero2_unit = GameUnit(**dict(hero2.to_mongo()))
+
+        hero2_unit.pos_x = 950
+        hero2_unit.pos_y = 950
         game.game_space.heros[str(u.id)] = GameUnit(**dict(hero.to_mongo()))
-        game.game_space.heros[str(u2.id)] = GameUnit(**dict(hero2.to_mongo()))
-#        game.game_space.heros[str(u3.id)] = GameUnit(**dict(hero.to_mongo()))
+        game.game_space.heros[str(u2.id)] = hero2_unit
+#game.game_space.heros[str(u3.id)] = GameUnit(**dict(hero.to_mongo()))
         game.start()
 
     def stop(self):

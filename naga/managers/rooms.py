@@ -23,6 +23,7 @@ class Room(Manager):
         game_status.players.append(Player(request['client_id'], user, request['token']))
 
         self.rooms[room_id] = game_status
+        print(self.rooms)
 
         print('game status is ', game_status.to_data_dict())
         return game_status.to_data_dict()

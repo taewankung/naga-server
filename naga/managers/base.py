@@ -25,6 +25,8 @@ class ComplexEncoder(json.JSONEncoder):
             return obj.to_data_dict()
         if isinstance(obj, hero.Hero):
             return obj.to_data_dict()
+        if isinstance(obj, building.Building):
+            return obj.to_data_dict()
         if isinstance(obj, tower.Tower):
             return obj.to_data_dict()
         if isinstance(obj, creep.Creep):

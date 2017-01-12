@@ -3,6 +3,7 @@ from .unit.tower import Tower
 from .unit.building import Building
 from .unit.creep import Creep
 from naga import models
+from naga.models.building import Building as building_a
 from .scoreboard import ScoreBoard
 from . import games
 import json
@@ -18,6 +19,8 @@ class BattleArena:
         self.tower_team2 = {}
         self.creep_team1 = {}
         self.creep_team2 = {}
+        self.base_team1 = None
+        self.base_team2 = None
         self.nature_creep ={}
         self.scoreboard = ScoreBoard(self.hero_team1,self.hero_team2)
 
@@ -28,7 +31,6 @@ class BattleArena:
 
 #//////Mehod///////////////////////////
     def to_data_dict(self):
-        dict_hero_team1 = {}
         battle_arena_data = dict(#players = self.players,
                                  #heros = self.heros,
                                  hero_team1 = self.hero_team1,
@@ -36,8 +38,10 @@ class BattleArena:
                                  tower_team1 = self.tower_team1,
                                  tower_team2 = self.tower_team2,
                                  creep_team1 = self.creep_team1,
-                                 creep_team2 = self.creep_team2
-                            )
+                                 creep_team2 = self.creep_team2,
+                                 base_team1 = self.base_team1,
+                                 base_team2 = self.base_team2
+                                )
         return battle_arena_data
 
     def schedule(self):
@@ -80,6 +84,12 @@ class BattleArena:
         self.update_creep_for_unit()
 
     def load_unit(self):
+        b1 = models.building.Building.objects(name ="Base_team1").first()
+        b2 =  models.building.Building.objects(name ="Base_team2").first()
+        b1_data = games.GameUnit(**dict(b1.to_mongo()))
+        b2_data = games.GameUnit(**dict(b2.to_mongo()))
+        self.base_team1 = Building(b1_data)
+        self.base_Team2 = Building(b2_data)
         tower_position =[
                     "base_left","base_right",
                     "bot_level1","bot_level2","bot_level3",
@@ -107,41 +117,54 @@ class BattleArena:
                     hero.enemy_list.append(self.tower_team2[tw_enemy])
                     self.tower_team2[tw_enemy].enemy_list.append(hero)
 
-                for hero_enemy in self.hero_team2:
-                    hero.enemy_list.append(self.hero_team2[hero_enemy])
-
             elif player.team == "team2" and player.ready:
-                self.hero_team2[player.id] = Hero(self.heros[player.id])
+                self.hero_team2[player.id] = Hero(self.heros[player.id],950,950)
                 hero = self.hero_team2[player.id]
                 for tw_enemy in self.tower_team1:
                     hero.enemy_list.append(self.tower_team1[tw_enemy])
                     self.tower_team1[tw_enemy].enemy_list.append(hero)
-
-                for hero_enemy in self.hero_team1:
-                    hero.enemy_list.append(self.hero_team1[hero_enemy])
-
-        print("load complete")
-
-    def check_status_all_unit(self):
-#//////////////check hero///////////////////////
         for hero_id in self.hero_team1:
             hero = self.hero_team1[hero_id]
-            if hero.current_hp <= 0:
-                #print('now {0} {1},{2}'.format(hero.name,hero.pos_x,hero.pos_y))
-                hero.pos_x = 50
-                hero.pos_y = 50
-                hero.die()
-                hero.countdown_to_born()
+            for hero_enemy in self.hero_team2:
+                hero.enemy_list.append(self.hero_team2[hero_enemy])
+            for hero_team in self.hero_team1:
+                hero.team_list.append(self.hero_team1[hero_team])
+        #    print('{0}:{1}'.format(hero.name,[h.name for h in hero.enemy_list]))
 
         for hero_id in self.hero_team2:
             hero = self.hero_team2[hero_id]
+            for hero_enemy in self.hero_team1:
+                hero.enemy_list.append(self.hero_team1[hero_enemy])
+            for hero_team in self.hero_team2:
+                hero.team_list.append(self.hero_team2[hero_team])
+         #   print('{0}:{1}'.format(hero.name,[h.name for h in hero.enemy_list]))
+
+        print("load complete")
+
+    def check_status_all_unit(self,time=0.001):
+#//////////////check hero///////////////////////
+        for hero_id in self.hero_team1:
+            hero = self.hero_team1[hero_id]
+            #hero.scan_enemy_unit()
+            hero.count_cooldown(time)
             if hero.current_hp <= 0:
                 #print('now {0} {1},{2}'.format(hero.name,hero.pos_x,hero.pos_y))
                 hero.pos_x = 50
                 hero.pos_y = 50
                 hero.die()
-                hero.countdown_to_born()
-#//////////////////check creep////////////////
+                hero.countdown_to_born(time)
+
+        for hero_id in self.hero_team2:
+            #hero.scan_enemy_unit()
+            hero = self.hero_team2[hero_id]
+            hero.count_cooldown(time)
+            if hero.current_hp <= 0:
+                #print('now {0} {1},{2}'.format(hero.name,hero.pos_x,hero.pos_y))
+                hero.pos_x = 970
+                hero.pos_y = 970
+                hero.die()
+                hero.countdown_to_born(time)
+#/////////////////check creep////////////////
         for creep_id in self.creep_team1:
             creep = self.creep_team1[creep_id]
             if creep.current_hp <= 0:
@@ -220,6 +243,7 @@ class BattleArena:
                 hero = self.hero_team1[hero_id]
                 hero.enemy_list.append(creep)
                 hero.enemy_list=list(set(hero.enemy_list))
+                #print('{0}: {1}'.format(hero.name,[e.name for e in hero.enemy_list]))
 
             for tw_id in self.tower_team1:
                 tower = self.tower_team1[tw_id]
@@ -232,6 +256,7 @@ class BattleArena:
                 hero = self.hero_team2[hero_id]
                 hero.enemy_list.append(creep)
                 hero.enemy_list=list(set(hero.enemy_list))
+                #print('{0}: {1}'.format(hero.name,[e.name for e in hero.enemy_list]))
 
             for tw_id in self.tower_team2:
                 tower = self.tower_team2[tw_id]
@@ -244,8 +269,19 @@ class BattleArena:
             hero.gold += 1
 
         for h in self.hero_team2:
-            hero = slef.hero_team2[h]
+            hero = self.hero_team2[h]
             hero.gold += 1
+
+    def count_cooldown_skill(self,time= 0.001):
+        for h in self.hero_team1:
+            hero = self.hero_team1[h]
+            for cd in range(0,4):
+                hero.current_cooldown[cd] -= time
+
+        for h in self.hero_team2:
+            hero = self.hero_team2[h]
+            for cd in range(0,4):
+                hero.current_cooldown[cd] -= time
 
     def get_hero_team(self,team):
         if team == "team1":

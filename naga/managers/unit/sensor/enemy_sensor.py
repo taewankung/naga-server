@@ -19,10 +19,9 @@ class EnemySensor(Sensor):
                 near_list.append((u,dist_u))
                 unit_in_range.append(u)
                 near_list = sorted(near_list,key=itemgetter(1))
-
+                #print('{0}:{1}'.format(self.unit.name,[u.name for u in unit_in_range]))
         for i in range(0,len(near_list)):
             unit_in_range[i] = near_list[i][0]
-
         return unit_in_range
 
     def update_unit_list(self):

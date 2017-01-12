@@ -57,6 +57,12 @@ def command_action(hero,command,naga_game):
             compleate = hero.move(command["target_pos_x"],command["target_pos_y"])
         if command['action'] == "attack":
             compleate = hero.attack(command["target"])
+        if command['action'] == "use_skill":
+            compleate = hero.use_skill(command["skill_num"],command["target"])
+        if command['action'] == "upgrade_skill":
+            compleate = hero.upgrade_skill(command["skill_num"])
+        if command['action'] == "wait":
+            hero.scan_enemy_unit()
     return compleate
 
 class GameScheduler(threading.Thread):
@@ -66,8 +72,11 @@ class GameScheduler(threading.Thread):
         self.status = 'wait'
         self.counter_send =0
         self.lock = threading.Lock()
+        self.old_event ={}
 
     def run(self):
+        for p in self.naga_game.players:
+            self.old_event[p.id] = ''
         while self.status != 'stop':
             self.counter_send = 0
             for p in self.naga_game.players:
@@ -83,7 +92,7 @@ class GameScheduler(threading.Thread):
             hero = self.naga_game.game_space.hero_team1[player.id]
         elif player.id in self.naga_game.game_space.hero_team2:
             hero = self.naga_game.game_space.hero_team2[player.id]
-        if hero.act_status["found_event"] !="":
+        if hero.act_status["found_event"] !="" and self.old_event[player.id] != hero.act_status["found_event"]:
             args = dict(msg=hero.act_status["found_event"])
             response = GameResponse(method='complete_command',
                                     response_type='owner',
@@ -94,7 +103,10 @@ class GameScheduler(threading.Thread):
                                     player.client_id,
                                     self.naga_game
                                     )
-            hero.act_status["found_event"]=""
+            if hero.act_status["found_event"] != 'battle':
+                hero.act_status["found_event"]=""
+            else:
+                self.old_event[player.id] = hero.act_status["found_event"]
 
         if command_action(hero,command,self.naga_game):
             args = dict(msg=command["msg"])
@@ -108,7 +120,9 @@ class GameScheduler(threading.Thread):
                                     player.client_id,
                                     self.naga_game
                                     )
-            player.command =dict()
+            player.command =dict(action='wait')
+        if player.command == 'use_skill':
+            player.command = dict(action='wait')
         #  self.lock.release();
 
 class NagaGame(threading.Thread):
@@ -167,7 +181,7 @@ class NagaGame(threading.Thread):
                     tower.update_enemy()
                     tower.attack()
 #///////////////Update Game/////////////////////
-                self.game_space.check_status_all_unit()
+                self.game_space.check_status_all_unit(ROUND_CHECK)
                 self.gold_timer += ROUND_CHECK
                 if self.gold_timer >=1:
                     self.gold_timer = 0
@@ -227,12 +241,30 @@ class NagaGame(threading.Thread):
         self.status = 'stop'
         self.game_scheduler = 'stop'
 
+    def use_skill(self,request):
+        params = request['args']
+        msg = params['msg']
+        skill_num = params['skill_num']
+        player_r = request['player']
+        target = params['target']
+        if player_r.id in self.game_space.hero_team1:
+            hero = self.game_space.hero_team1[player_r.id]
+        if player_r.id in self.game_space.hero_team2:
+            hero = self.game_space.hero_team2[player_r.id]
+        for p in self.players:
+            if p.client_id == player_r.client_id:
+                p.command =dict(action="use_skill",
+                                #current_pos=(hero.pos_x,hero.pos_y),
+                                skill_num = skill_num,
+                                target= target,
+                                msg=msg
+                                )
 
     def move_hero(self, request):
         #self.lock.acquire()
         params = request['args']
         msg = params['msg']
-        #  print(request)
+#        print(request)
         x = params['x']
         y = params['y']
         player_r = request['player']
@@ -254,30 +286,29 @@ class NagaGame(threading.Thread):
     def attack(self,request):
         target_enemy = request["args"]["target"]
         msg = request['args']['msg']
-#        print(msg)
+#        print(request)
         player_r = request['player']
 #        print(target)
-        if target_enemy != []:
+        if target_enemy != {}:
             #print(str(request["player"].id)+ " will attack:"+str(target_enemy["name"]))
             for p in self.players:
                 if p.client_id == player_r.client_id:
                     p.command = dict(action="attack",
-                                     target=str(target_enemy["name"]),
+                                     target=str(target_enemy),
                                      msg=msg
                                     )
 
-
-    def skill_action(self, request):
+    def upgrade_skill(self,request):
         params = request['args']
-        skill = params['skill']
-        player = request['player']
-
-        args = dict(skill=skill, player_id=player.id)
-        response = GameResponse(method='skill_action',
-                args=args,
-                response_type='other')
-
-        return response
+        player_r = request['player']
+        msg = params['msg']
+        skill_num = params['skill_num']
+        for p in self.players:
+            if p.client_id == player_r.client_id:
+                p.command = dict(action="upgrade_skill",
+                                 skill_num = skill_num,
+                                 msg=msg
+                                )
 
     def to_data_dict(self):
         result = dict(status=self.status,
