@@ -321,6 +321,7 @@ class Hero(Unit):
                 assist=self.assist,
                 lasthit=self.lasthit,
                 current_exp=self.current_exp,
+                max_exp = self.max_exp,
                 move_status=self.move_status,
                 act_status=self.act_status,
                 near_enemy_list=[enemy.name for enemy in self.near_enemy_list],
