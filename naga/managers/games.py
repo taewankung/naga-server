@@ -7,6 +7,8 @@ from threading import Timer
 import sched
 
 from .battle_arena import BattleArena
+from .unit.hero import Hero
+from naga import models
 
 class GameUnit:
     def __init__(self, **kw):
@@ -309,6 +311,29 @@ class NagaGame(threading.Thread):
                                  skill_num = skill_num,
                                  msg=msg
                                 )
+
+#  def select_hero(self,request):
+        #  print('Select Hero')
+        #  params = request['args']
+        #  player_r = request['player']
+        #  hero_m = models.Hero.objects(name=params['hero_name']).first()
+        #  hero_unit = GameUnit(**dict(hero_m._to_mongo))
+        #  self.game_space.heroes[str(player_r.id)] = hero_unit
+        #  if player_r.team == "team1" and player.ready:
+            #  self.game_space.hero_team1[str(player_r.id)] = Hero(self.heros[player_r.id])
+            #  hero = self.hero_team1[player_r.id]
+            #  for tw_enemy in self.game_space.tower_team2:
+                #  hero.enemy_list.append(self.games_space.tower_team2[tw_enemy])
+                #  self.game_space.tower_team2[tw_enemy].enemy_list.append(hero)
+
+        #  if player_r.team == "team2" and player.ready:
+            #  self.game_space.hero_team2[str(player_r.id)] = Hero(self.heros[player_r.id])
+            #  hero = self.hero_team2[player_r.id]
+            #  for tw_enemy in self.game_space.tower_team1:
+                #  hero.enemy_list.append(self.games_space.tower_team1[tw_enemy])
+                #  self.game_space.tower_team1[tw_enemy].enemy_list.append(hero)
+
+        #print(player_r.user.username)
 
     def to_data_dict(self):
         result = dict(status=self.status,

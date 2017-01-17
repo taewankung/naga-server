@@ -3,6 +3,7 @@ from naga import models
 import uuid
 import datetime
 import json
+from naga.game_controller import GameStatusController
 
 from .games import NagaGame, Player, GameUnit
 
@@ -18,13 +19,13 @@ class Room(Manager):
             room_name = args.get('room_name')
         room_id = str(uuid.uuid4())
         user = self.get_user(request)
-
-        game_status = NagaGame(room_id, room_name, user)
+        print('created')
+        game_controller = GameStatusController(self.mqtt_client,self)
+        game_status = NagaGame(room_id, room_name, user,game_controller)
         game_status.players.append(Player(request['client_id'], user, request['token']))
 
         self.rooms[room_id] = game_status
-        print(self.rooms)
-
+        game_status.start()
         print('game status is ', game_status.to_data_dict())
         return game_status.to_data_dict()
 
@@ -64,7 +65,7 @@ class Room(Manager):
         rooms = []
         for room_id, room in self.rooms.items():
             if room.status == 'wait':
-                rooms.append(room)
+                rooms.append((room_id,room))
 
         response = dict(rooms=rooms)
         return response
@@ -89,20 +90,21 @@ class Room(Manager):
     def select_hero(self, request):
         print('select hero request', request)
         hero_name = request['args'].get('hero', None)
+        print(hero_name)
         room_id = request['args'].get('room_id', None)
         game = self.rooms.get(room_id, None)
-
         hero = models.Hero.objects(name=hero_name).first()
 
         user = self.get_user(request)
 
-        if hero is None:
+        if hero is  None:
             return
 
 
         gu = GameUnit(**dict(hero.to_mongo()))
         game.game_space.heros[str(user.id)] = gu
 
+#        print(game.heros)
         response = dict()
         return response
 

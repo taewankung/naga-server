@@ -111,18 +111,21 @@ class BattleArena:
         #set hero and set enemy for hero
         for player in self.players:
             if player.team == "team1" and player.ready:
-                self.hero_team1[player.id] = Hero(self.heros[player.id])
-                hero = self.hero_team1[player.id]
-                for tw_enemy in self.tower_team2:
-                    hero.enemy_list.append(self.tower_team2[tw_enemy])
-                    self.tower_team2[tw_enemy].enemy_list.append(hero)
+                if player.id in self.heros:
+                    self.hero_team1[player.id] = Hero(self.heros[player.id])
+                    hero = self.hero_team1[player.id]
+                    for tw_enemy in self.tower_team2:
+                        hero.enemy_list.append(self.tower_team2[tw_enemy])
+                        self.tower_team2[tw_enemy].enemy_list.append(hero)
 
             elif player.team == "team2" and player.ready:
-                self.hero_team2[player.id] = Hero(self.heros[player.id],950,950)
-                hero = self.hero_team2[player.id]
-                for tw_enemy in self.tower_team1:
-                    hero.enemy_list.append(self.tower_team1[tw_enemy])
-                    self.tower_team1[tw_enemy].enemy_list.append(hero)
+                if player.id in self.heros:
+                    self.hero_team2[player.id] = Hero(self.heros[player.id],950,950)
+                    hero = self.hero_team2[player.id]
+                    for tw_enemy in self.tower_team1:
+                        hero.enemy_list.append(self.tower_team1[tw_enemy])
+                        self.tower_team1[tw_enemy].enemy_list.append(hero)
+
         for hero_id in self.hero_team1:
             hero = self.hero_team1[hero_id]
             for hero_enemy in self.hero_team2:

@@ -234,7 +234,7 @@ class Hero(Unit):
                     compleate = False
                 else:
                     compleate = True
-        if not compleate and self.act_status["found_event"] !="battle":
+        if not compleate and self.act_status["found_event"] =="battle":
                 self.act_status["found_event"]="battle"
         else:
             self.act_status["found_event"]=""

@@ -10,18 +10,17 @@ class NagaController:
         self.user = managers.User(self.mqtt_client)
         self.room = managers.Room(self.mqtt_client)
 
+# comment if release
         self.game_controller = game_controller.GameStatusController(self.mqtt_client, self.room)
         self.game_controller.start()
 
-        # comment if release
         from .managers.rooms import NagaGame, Player, GameUnit
         from naga import models
         test_room_id = 'test_room_id'
-        u = models.User.objects(username='test').first()
+        u = models.User.objects(username='client1').first()
         game = NagaGame(test_room_id, 'test_room_name', u, self.game_controller)
 
         p1 =  Player('test_client_id', u, 'test_token')
-
         u2 = models.User.objects(username='client1').first()
         p2 = Player('client1', u2, 'client1')
         p2.team ='team2'
@@ -29,8 +28,8 @@ class NagaController:
 #        p3 = Player('client3', u3, 'client3')
 
 #        game.add_player(p3)
-        game.add_player(p2)
-        game.add_player(p1)
+        #  game.add_player(p2)
+#        game.add_player(p1)
 
         self.room.rooms[test_room_id] = game
         hero = models.Hero.objects(name='Sinsamut').first()
