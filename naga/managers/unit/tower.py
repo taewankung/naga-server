@@ -22,6 +22,7 @@ class Tower(Building):
         num_old_enemy = self.num_current_enemy
         self.near_enemy_list = self.enemy_sensor.scan()
         self.num_current_enemy = len(self.near_enemy_list)
+        #print('{0}: attack'.format(self.name))
         if self.current_speed_dmg >= self.damage_speed:
             if len(self.near_enemy_list) != 0:
                 self.near_enemy_list[0].current_hp = self.near_enemy_list[0].current_hp - self.damage

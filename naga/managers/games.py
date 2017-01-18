@@ -157,20 +157,22 @@ class NagaGame(threading.Thread):
 #///////////////Spawn Creep//////////////////////
                 if self.spawn_time > 11:
                     self.spawn_time = 0
-                    print('creat_creep')
-                    self.game_space.create_creep()
+                    print('create_creep')
+                    self.game_space.create_creep('mid')
+                    self.game_space.create_creep('btm')
+                    self.game_space.create_creep('top')
                 else:
                     self.spawn_time = self.spawn_time + ROUND_CHECK
 
 #///////////////Creep Action////////////////////
                 for creep_id in self.game_space.creep_team1:
                     creep = self.game_space.creep_team1[creep_id]
-                    creep.run_behavior(lane='mid_team1')
+                    creep.run_behavior(lane=str(creep.position_lane)+'_team1')
 
                 for creep_id in self.game_space.creep_team2:
                     creep = self.game_space.creep_team2[creep_id]
-                    creep.run_behavior(lane='mid_team2')
-
+                    creep.run_behavior(lane=str(creep.position_lane)+'_team2')
+                    #print(creep.position_lane)
 
 #///////////////Tower Action////////////////////
                 for tw_id in self.game_space.tower_team2:

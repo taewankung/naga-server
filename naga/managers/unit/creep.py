@@ -26,6 +26,10 @@ class Creep(Unit):
         self.exp = 20
         self.bounty = 45
         self.state = 'walk'
+        self.position_lane = 'mid'
+        self.old_move = None
+        self.move_state1 = False
+        self.move_state2 = False
         #  self.path = {'mid':{
                            #  },
                      #  'top':{},
@@ -40,19 +44,62 @@ class Creep(Unit):
             if lane == 'mid_team1':
                 if self.state =='walk':
                     self.move(1000,1000)
+                    self.old_move = (1000,1000)
                 elif self.state == 'found_enemy':
                     self.attack()
 
             if lane == 'mid_team2':
                 if self.state =='walk':
                     self.move(0,0)
+                    self.old_move = (0,0)
                 elif self.state == 'found_enemy':
                     self.attack()
 
+            if lane == 'btm_team1':
+                if self.state =='walk' and not self.move_state1:
+                    self.move_state1 = self.move(950,150)
+                    self.old_move = (950,150)
+                elif self.state =='walk' and self.move_state1:
+                    self.move_state2 =  self.move(950,950)
+                    self.old_move = (950,950)
+                elif self.state == 'found_enemy':
+                    self.attack()
+
+            if lane == 'btm_team2':
+                if self.state =='walk' and not self.move_state1:
+                    self.move_state1 = self.move(950,150)
+                    self.old_move = (950,150)
+                elif self.state =='walk' and self.move_state1:
+                    self.move_state2 = self.move(50,50)
+                    self.old_move = (50,50)
+                elif self.state == 'found_enemy':
+                    self.attack()
+
+            if lane == 'top_team1':
+                if self.state =='walk' and not self.move_state1:
+                    self.move_state1 = self.move(50,950)
+                    self.old_move = (50,950)
+                elif self.state =='walk' and self.move_state1:
+                    self.move_state2 =  self.move(950,950)
+                    self.old_move = (950,950)
+                elif self.state == 'found_enemy':
+                    self.attack()
+
+            if lane == 'top_team2':
+                if self.state =='walk' and not self.move_state1:
+                    self.move_state1 = self.move(150,950)
+                    self.old_move = (150,950)
+                elif self.state =='walk' and self.move_state1:
+                    self.move_state2 = self.move(50,50)
+                    self.old_move = (50,50)
+                elif self.state == 'found_enemy':
+                    self.attack()
     def stop(self):
         self.state = 'stop'
 
     def move(self,pos_x,pos_y):
+        state_x = False
+        state_y = False
         pi = 3.14159265359
         m = (pos_y-self.pos_y)/(pos_x-self.pos_x)
         rad = math.atan(m)
@@ -64,13 +111,18 @@ class Creep(Unit):
         forge_y = self.move_speed * math.sin(rad)*0.001
         if not isclose(pos_x,self.pos_x,1e-01) and self.pos_x < 1000 and self.pos_x > -1:
             self.pos_x += forge_x
+        else:
+            state_x = True
         if not isclose(self.pos_y,pos_y,1e-01) and self.pos_y < 1000 and self.pos_y >= -1:
             self.pos_y += forge_y
+        else:
+            state_y = True
         num_old_enemy = self.num_current_enemy
         self.near_enemy_list = self.enemy_sensor.scan()
         self.num_current_enemy = len(self.near_enemy_list)
         if num_old_enemy != self.num_current_enemy:
             self.state = 'found_enemy'
+        return state_x and state_y
 
     def attack(self):
         #  num_old_enemy = self.num_current_enemy
@@ -85,8 +137,14 @@ class Creep(Unit):
                 self.current_speed_dmg = 0
             else:
                 self.current_speed_dmg = self.current_speed_dmg + 0.001
-        else:
-            self.state = 'walk'
+        self.near_enemy_list = self.enemy_sensor.scan()
+        #  else:
+            #  self.state = 'walk'
+        if self.near_enemy_list == []:
+            self.state ='walk'
+            self.move(self.old_move[0],self.old_move[1])
+
+
 
     def to_data_dict(self):
         result = dict(id=self.id,

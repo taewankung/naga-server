@@ -47,13 +47,15 @@ class BattleArena:
     def schedule(self):
         pass
 
-    def create_creep(self,target='mid'):
+    def create_creep(self,target=''):
         c = models.Creep.objects(name = "Creep").first()
         c_data = games.GameUnit(**dict(c.to_mongo()))
 
-        if target == 'mid':
+        if target != '':
             for i in range(1):
                 creep = Creep(c_data)
+                #creep.damage = 1000
+                creep.position_lane = target
                 creep.pos_x = self.game_location['spawn_creep_team1'][0]
                 creep.pos_y = self.game_location['spawn_creep_team1'][1]
                 for tw_enemy in self.tower_team2:
@@ -64,6 +66,7 @@ class BattleArena:
 
             for i in range(1):
                 creep = Creep(c_data)
+                creep.position_lane = target
                 creep.pos_x = self.game_location['spawn_creep_team2'][0]
                 creep.pos_y = self.game_location['spawn_creep_team2'][1]
                 for tw_enemy in self.tower_team1:
@@ -144,7 +147,7 @@ class BattleArena:
 
         print("load complete")
 
-    def check_status_all_unit(self,time=0.001):
+    def check_status_all_unit(self,time=0.5):
 #//////////////check hero///////////////////////
         for hero_id in self.hero_team1:
             hero = self.hero_team1[hero_id]

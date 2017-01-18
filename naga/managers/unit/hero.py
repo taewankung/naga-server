@@ -55,6 +55,7 @@ class Hero(Unit):
         self.act_status = dict(action="",
                                found_event=""
                               )
+        self.item_list = []
         #  self.target = None
         self.time_to_born = 0
         self.enemy_list = []
@@ -86,6 +87,7 @@ class Hero(Unit):
             self.level = self.level + 1
             self.skill_point +=1
             self.max_exp = self.exp_up[self.level]
+            self.act_status["found_event"]="level_up"
 
     def use_skill(self,skill_number,target=''):
         code = 0
@@ -93,6 +95,7 @@ class Hero(Unit):
         if self.skill_level[skill_number] != 0:
             skill_level = self.skill_level[skill_number]
             skill = self.skills[skill_number]
+            #print(skill['name'])
             if skill['skill_type'] != 'buff_passive':
                 if skill['skill_type'] == 'attack' and self.current_cooldown[skill_number]<=0 and self.current_mana >= skill['used_mana'][skill_level]:
                     for enemy in self.near_enemy_list:
@@ -101,7 +104,6 @@ class Hero(Unit):
                             enemy.current_hp = enemy.current_hp - skill['magic'][skill_level]
                             self.current_cooldown[skill_number]= skill['cooldown'][skill_level]
                             self.current_mana -= skill['used_mana'][skill_level]
-                            code = 1
                             code = self.check_enemy_die(enemy)
                             used = True
                 elif skill['skill_type'] == 'support':
@@ -152,7 +154,7 @@ class Hero(Unit):
         self.alive = False
         if self.time_to_born <=0 and not self.alive:
             self.act_status["found_event"]="died"
-            self.time_to_born = self.level*15;
+            self.time_to_born = self.level*5;
             self.current_cooldown = [0,0,0,0]
             self.current_mana = self.max_mana
 
@@ -178,6 +180,7 @@ class Hero(Unit):
             #  print('{0}:{1}'.format(self.pos_x,self.pos_y))
 
     def countdown_to_born(self,time=0.001):
+#        print(self.time_to_born)
         if self.time_to_born > 0:
             self.time_to_born = self.time_to_born - time
         if self.time_to_born <= 0 :
@@ -245,7 +248,7 @@ class Hero(Unit):
             self.current_exp += enemy.exp
             self.gold += enemy.bounty
             if self.current_exp >= self.max_exp:
-                self.current_exp = self.current - self.exp_max
+                self.current_exp = self.current_exp - self.max_exp
                 self.level_up()
                 return 3
             return 1

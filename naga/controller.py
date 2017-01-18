@@ -17,7 +17,7 @@ class NagaController:
         from .managers.rooms import NagaGame, Player, GameUnit
         from naga import models
         test_room_id = 'test_room_id'
-        u = models.User.objects(username='client1').first()
+        u = models.User.objects(username='test').first()
         game = NagaGame(test_room_id, 'test_room_name', u, self.game_controller)
 
         p1 =  Player('test_client_id', u, 'test_token')
@@ -28,8 +28,8 @@ class NagaController:
 #        p3 = Player('client3', u3, 'client3')
 
 #        game.add_player(p3)
-        #  game.add_player(p2)
-#        game.add_player(p1)
+        game.add_player(p2)
+        game.add_player(p1)
 
         self.room.rooms[test_room_id] = game
         hero = models.Hero.objects(name='Sinsamut').first()
