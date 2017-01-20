@@ -282,8 +282,10 @@ class NagaGame(threading.Thread):
         player_r = request['player']
         if player_r.id in self.game_space.hero_team1:
             hero = self.game_space.hero_team1[player_r.id]
-        if player_r.id in self.game_space.hero_team2:
+            hero.act_status['action']='move'
+        elif player_r.id in self.game_space.hero_team2:
             hero = self.game_space.hero_team2[player_r.id]
+            hero.act_status['action']='move'
         for p in self.players:
             if p.client_id == player_r.client_id:
                 p.command =dict(action="move",
