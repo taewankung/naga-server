@@ -155,6 +155,7 @@ class BattleArena:
             hero.count_cooldown(time)
             if hero.current_hp <= 0:
                 #print('now {0} {1},{2}'.format(hero.name,hero.pos_x,hero.pos_y))
+                hero.current_hp = 0
                 hero.pos_x = 50
                 hero.pos_y = 50
                 hero.die()
@@ -166,6 +167,7 @@ class BattleArena:
             hero.count_cooldown(time)
             if hero.current_hp <= 0:
                 #print('now {0} {1},{2}'.format(hero.name,hero.pos_x,hero.pos_y))
+                hero.current_hp = 0
                 hero.pos_x = 970
                 hero.pos_y = 970
                 hero.die()

@@ -4,13 +4,15 @@ import uuid
 import datetime
 import json
 from naga.game_controller import GameStatusController
+from .base import ComplexEncoder
 
-from .games import NagaGame, Player, GameUnit
+from .games import NagaGame, Player ,GameUnit
 
 class Room(Manager):
     def __init__(self, mqtt_client):
         super().__init__(mqtt_client)
         self.rooms = dict()
+        self.status = 'wait'
 
     def create_room(self, request):
         room_name = None
@@ -39,6 +41,7 @@ class Room(Manager):
         if game:
             if len(game.players) <= 10:
                 user = self.get_user(request)
+                args=dict()
                 check = False
                 for p in game.players:
                     if user == p.user:
@@ -54,7 +57,9 @@ class Room(Manager):
                     game.add_player(player)
                 response['joined'] = True
                 response['room_id'] = room_id
+                response['response_type'] = 'all_in_room'
             else:
+                self.status ='Full'
                 response['joined'] = False
         else:
             response['joined'] = False

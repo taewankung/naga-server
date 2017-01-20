@@ -34,10 +34,16 @@ class RPCServer:
         topic = self.get_rpc_topic(client_id)
         self.publish(topic, msg, 1)
 
+    def rpc_response_all(self, response, room_id):
+        for player in self.controller.room.rooms[room_id].players:
+            client_id = player.client_id
+            #print(client_id)
+            self.rpc_response(response, client_id)
+
     def rpc_request(self, client, controller, msg):
         payload = self.get_payload(msg)
 
-        print("rpc request :", payload)
+#        print("rpc request :", payload)
 
         call_name=payload.get('method', None)
         if call_name is None:
@@ -58,5 +64,8 @@ class RPCServer:
         else:
             payload['responses'] = None
             payload['status'] = 'fail'
-
-        return self.rpc_response(payload, payload['client_id'])
+        if payload['responses'] is not None and 'response_type' in payload['responses']:
+            if payload['responses']['response_type']=='all_in_room':
+                self.rpc_response_all(payload, payload['responses']['room_id'])
+        else:
+            self.rpc_response(payload, payload['client_id'])

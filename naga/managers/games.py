@@ -3,8 +3,8 @@ import datetime
 import time
 import json
 import threading
-from threading import Timer
-import sched
+#from threading import Timer
+#import sched
 
 from .battle_arena import BattleArena
 from .unit.hero import Hero
@@ -142,28 +142,31 @@ class NagaGame(threading.Thread):
         self.lock = threading.Lock()
         self.spawn_time = 0
         self.gold_timer = 0
-
+ #       self.start_time = time.time()
         self.player_executors = dict()
 
     def run(self):
         count = 0
         status = ''
+        print('check')
         while self.status != 'stop':
             if self.status == 'play':
                 if count ==0:
                     self.game_scheduler.start()
+                    self.spawn_time=time.time()
+                    self.gold_timer=time.time()
                     count = count+1
 
 #///////////////Spawn Creep//////////////////////
-                if self.spawn_time > 11:
-                    self.spawn_time = 0
+                if time.time()-self.spawn_time > 11:
+                    self.spawn_time = time.time()
                     print('create_creep')
                     self.game_space.create_creep('mid')
                     self.game_space.create_creep('btm')
                     self.game_space.create_creep('top')
-                else:
-                    self.spawn_time = self.spawn_time + ROUND_CHECK
-
+#                else:
+#                    self.spawn_time = self.spawn_time + ROUND_CHECK
+#                    print('{0}'.format(time.time()- self.spawn_time))
 #///////////////Creep Action////////////////////
                 for creep_id in self.game_space.creep_team1:
                     creep = self.game_space.creep_team1[creep_id]
@@ -173,7 +176,6 @@ class NagaGame(threading.Thread):
                     creep = self.game_space.creep_team2[creep_id]
                     creep.run_behavior(lane=str(creep.position_lane)+'_team2')
                     #print(creep.position_lane)
-
 #///////////////Tower Action////////////////////
                 for tw_id in self.game_space.tower_team2:
                     tower = self.game_space.tower_team2[tw_id]
@@ -184,15 +186,21 @@ class NagaGame(threading.Thread):
                     tower = self.game_space.tower_team1[tw_id]
                     tower.update_enemy()
                     tower.attack()
+#///////////////Base ////////////////////////////
+                if self.game_space.base_team1 is not None and not self.game_space.base_team1.alive:
+                    self.status = 'end_team2_win'
+                elif self.game_space.base_team2 is not None and not self.game_space.base_team2.alive:
+                    self.status = 'end_team1_win'
 #///////////////Update Game/////////////////////
                 self.game_space.check_status_all_unit(ROUND_CHECK)
-                self.gold_timer += ROUND_CHECK
-                if self.gold_timer >=1:
-                    self.gold_timer = 0
+                if time.time()-self.gold_timer >=1:
+                    self.gold_timer = time.time()
                     self.game_space.gold_per_time()
                 self.game_controller.response_all(self.update_game(),self)
 #                self.game_space.clear_creep_died()
             time.sleep(ROUND_CHECK)
+#            now = time.time()
+#            print('time.time:{}'.format(now-self.start_time))
 
     def update(self, request):
         print("update", request)
