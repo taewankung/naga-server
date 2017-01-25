@@ -23,7 +23,7 @@ class NagaController:
         p1 =  Player('test_client_id', u, 'test_token')
         u2 = models.User.objects(username='client1').first()
         p2 = Player('client1', u2, 'client1')
-        p2.team ='team2'
+#        p2.team ='team2'
 #        u3 = models.User.objects(username='client3').first()
 #        p3 = Player('client3', u3, 'client3')
 

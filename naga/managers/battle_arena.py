@@ -23,6 +23,7 @@ class BattleArena:
         self.base_team2 = None
         self.nature_creep ={}
         self.scoreboard = ScoreBoard(self.hero_team1,self.hero_team2)
+        self.item_shop ={}
 
 #////////Localtion in game////////////////
         self.game_location = {"spawn_creep_team1":(150,150),
@@ -87,6 +88,12 @@ class BattleArena:
         self.update_creep_for_unit()
 
     def load_unit(self):
+        item_list =['Armor Boot','Assasin Grove','Blade Boot','Boot','Emeral',
+                    'Grove','Knife','Loki\'s Grove','Mana potion','Pandora box',
+                    'Potion','Ruby','Sapphire','Shild','Soul Box','Sword']
+        for item_name in item_list:
+            item_obj = models.Item.objects(name=item_name).first()
+            self.item_shop[item_name] = dict(item_obj.to_mongo())
         b1 = models.building.Building.objects(name ="Base_team1").first()
         b2 =  models.building.Building.objects(name ="Base_team2").first()
         b1_data = games.GameUnit(**dict(b1.to_mongo()))
@@ -153,6 +160,7 @@ class BattleArena:
             hero = self.hero_team1[hero_id]
             #hero.scan_enemy_unit()
             hero.count_cooldown(time)
+            hero.enemy_sensor.unit_list = hero.enemy_list
             if hero.current_hp <= 0:
                 #print('now {0} {1},{2}'.format(hero.name,hero.pos_x,hero.pos_y))
                 hero.current_hp = 0
@@ -165,6 +173,7 @@ class BattleArena:
             #hero.scan_enemy_unit()
             hero = self.hero_team2[hero_id]
             hero.count_cooldown(time)
+            hero.enemy_sensor.unit_list = hero.enemy_list
             if hero.current_hp <= 0:
                 #print('now {0} {1},{2}'.format(hero.name,hero.pos_x,hero.pos_y))
                 hero.current_hp = 0
@@ -175,6 +184,7 @@ class BattleArena:
 #/////////////////check creep////////////////
         for creep_id in self.creep_team1:
             creep = self.creep_team1[creep_id]
+            creep.enemy_sensor.unit_list = creep.enemy_sensor.unit_list
             if creep.current_hp <= 0:
                 creep.alive = False
                 creep.pos_x = -20
@@ -183,6 +193,7 @@ class BattleArena:
 
         for creep_id in self.creep_team2:
             creep = self.creep_team2[creep_id]
+            creep.enemy_sensor.unit_list = creep.enemy_sensor.unit_list
             if creep.current_hp <= 0:
                 creep.alive = False
                 creep.pos_x = -20
@@ -208,7 +219,7 @@ class BattleArena:
         for creep_id in self.creep_team1:
             creep = self.creep_team1[creep_id]
             if not creep.alive:
-                print('id:{0}:{1}'.format(creep.id,creep_id))
+                #print('id:{0}:{1}'.format(creep.id,creep_id))
                 for hero_id in self.hero_team2:
                     hero = self.hero_team2[hero_id]
                     hero.enemy_list.remove(creep)
@@ -228,7 +239,7 @@ class BattleArena:
         for creep_id in self.creep_team2:
             creep = self.creep_team2[creep_id]
             if not creep.alive:
-                print('id:{0}:{1}'.format(creep_id,creep.alive))
+                #print('id:{0}:{1}'.format(creep_id,creep.alive))
                 for hero_id in self.hero_team1:
                     hero = self.hero_team1[hero_id]
                     hero.enemy_list.remove(creep)

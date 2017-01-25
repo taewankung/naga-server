@@ -77,8 +77,8 @@ class Creep(Unit):
 
             if lane == 'top_team1':
                 if self.state =='walk' and not self.move_state1:
-                    self.move_state1 = self.move(50,950)
-                    self.old_move = (50,950)
+                    self.move_state1 = self.move(75,950)
+                    self.old_move = (75,950)
                 elif self.state =='walk' and self.move_state1:
                     self.move_state2 =  self.move(950,950)
                     self.old_move = (950,950)
@@ -87,11 +87,11 @@ class Creep(Unit):
 
             if lane == 'top_team2':
                 if self.state =='walk' and not self.move_state1:
-                    self.move_state1 = self.move(150,950)
-                    self.old_move = (150,950)
+                    self.move_state1 = self.move(60,950)
+                    self.old_move = (60,950)
                 elif self.state =='walk' and self.move_state1:
-                    self.move_state2 = self.move(50,50)
-                    self.old_move = (50,50)
+                    self.move_state2 = self.move(60,50)
+                    self.old_move = (60,50)
                 elif self.state == 'found_enemy':
                     self.attack()
     def stop(self):

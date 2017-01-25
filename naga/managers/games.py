@@ -65,6 +65,8 @@ def command_action(hero,command,naga_game):
             compleate = hero.upgrade_skill(command["skill_num"])
         if command['action'] == "wait":
             hero.scan_enemy_unit()
+        if command['action'] == 'buy_item':
+            compleate=hero.buy_item(command['item'])
     return compleate
 
 class GameScheduler(threading.Thread):
@@ -105,7 +107,8 @@ class GameScheduler(threading.Thread):
                                     player.client_id,
                                     self.naga_game
                                     )
-            if hero.act_status["found_event"] != 'battle':
+            many_send_list = ['can not buy item','battle','can not use item']
+            if hero.act_status["found_event"] not in  many_send_list:
                 hero.act_status["found_event"]=""
             else:
                 self.old_event[player.id] = hero.act_status["found_event"]
@@ -122,8 +125,11 @@ class GameScheduler(threading.Thread):
                                     player.client_id,
                                     self.naga_game
                                     )
+            print(player.command)
             player.command =dict(action='wait')
-        if player.command == 'use_skill':
+            hero.act_status['action'] = 'wait'
+        single_use_list = ['use_skill','buy_item','use_item']
+        if player.command in single_use_list:
             player.command = dict(action='wait')
         #  self.lock.release();
 
@@ -158,7 +164,7 @@ class NagaGame(threading.Thread):
                     count = count+1
 
 #///////////////Spawn Creep//////////////////////
-                if time.time()-self.spawn_time > 11:
+                if time.time()-self.spawn_time > 30:
                     self.spawn_time = time.time()
                     print('create_creep')
                     self.game_space.create_creep('mid')
@@ -196,9 +202,10 @@ class NagaGame(threading.Thread):
                 if time.time()-self.gold_timer >=1:
                     self.gold_timer = time.time()
                     self.game_space.gold_per_time()
+                self.game_space.clear_creep_died()
                 self.game_controller.response_all(self.update_game(),self)
-#                self.game_space.clear_creep_died()
             time.sleep(ROUND_CHECK)
+        print('End Game')
 #            now = time.time()
 #            print('time.time:{}'.format(now-self.start_time))
 
@@ -249,9 +256,54 @@ class NagaGame(threading.Thread):
                 qos=1)
         return response
 
-    def stop(self):
+    def stop(self,request):
+        self.game_scheduler.stop()
+        self.game_controller.response_all(self.update_game(),self)
+        response = GameResponse(method='end_game',
+                                args=dict(),
+                                response_type='owner',
+                                qos=1
+                               )
+        self.game_controller.response_all(response,self)
         self.status = 'stop'
-        self.game_scheduler = 'stop'
+        self.game_scheduler.stop()
+
+
+    def buy_item(self,request):
+        params = request['args']
+        player_r = request['player']
+        msg = params['msg']
+        item = params['item']
+        if player_r.id in self.game_space.hero_team1:
+            hero = self.game_space.hero_team1[player_r.id]
+        if player_r.id in self.game_space.hero_team2:
+            hero = self.game_space.hero_team2[player_r.id]
+        for p in self.players:
+            if p.client_id == player_r.client_id:
+                p.command =dict(action="buy_item",
+                                #current_pos=(hero.pos_x,hero.pos_y),
+                                item = self.game_space.item_shop[item],
+                                msg=msg
+                                )
+                hero.act_status['action'] = 'buy item: {}'.format(item)
+
+    def use_item(self,request):
+        params = request['args']
+        player = request['player']
+        msg = params['msg']
+        item = params['item']
+        if player_r.id in self.game_space.hero_team1:
+            hero = self.game_space.hero_team1[player_r.id]
+        if player_r.id in self.game_space.hero_team2:
+            hero = self.game_space.hero_team2[player_r.id]
+        for p in self.players:
+            if p.client_id == player_r.client_id:
+                p.command =dict(action="use_item",
+                                #current_pos=(hero.pos_x,hero.pos_y),
+                                item = self.game_space.item_shop[item],
+                                msg=msg
+                                )
+                hero.act_status['action'] = 'use item: {}'.format(item)
 
     def use_skill(self,request):
         params = request['args']
@@ -271,6 +323,7 @@ class NagaGame(threading.Thread):
                                 target= target,
                                 msg=msg
                                 )
+                hero.act_status['action'] = 'use skill: {}'.format(skill_num)
 
     def move_hero(self, request):
         #self.lock.acquire()
@@ -300,9 +353,7 @@ class NagaGame(threading.Thread):
     def attack(self,request):
         target_enemy = request["args"]["target"]
         msg = request['args']['msg']
-#        print(request)
         player_r = request['player']
-#        print(target)
         if target_enemy != {}:
             #print(str(request["player"].id)+ " will attack:"+str(target_enemy["name"]))
             for p in self.players:
@@ -311,6 +362,25 @@ class NagaGame(threading.Thread):
                                      target=str(target_enemy),
                                      msg=msg
                                     )
+
+    def aliance_message(self,request):
+        params = request['args']
+        player_r = request['player']
+        msg = params['msg']
+        args_request = params['args']
+        args = dict(msg=msg)
+        for p in self.players:
+            if p.team == player_r.team and player_r.client_id != p.client_id:
+                print('from {0} to {1}:{2}'.format(player_r.id,p.id,msg))
+                response = GameResponse(method='complete_command',
+                                response_type='owner',
+                                args=args,
+                                qos=1)
+                self.game_controller.response(
+                                            response,
+                                            p.client_id,
+                                            self
+                                            )
 
     def upgrade_skill(self,request):
         params = request['args']
@@ -323,29 +393,6 @@ class NagaGame(threading.Thread):
                                  skill_num = skill_num,
                                  msg=msg
                                 )
-
-#  def select_hero(self,request):
-        #  print('Select Hero')
-        #  params = request['args']
-        #  player_r = request['player']
-        #  hero_m = models.Hero.objects(name=params['hero_name']).first()
-        #  hero_unit = GameUnit(**dict(hero_m._to_mongo))
-        #  self.game_space.heroes[str(player_r.id)] = hero_unit
-        #  if player_r.team == "team1" and player.ready:
-            #  self.game_space.hero_team1[str(player_r.id)] = Hero(self.heros[player_r.id])
-            #  hero = self.hero_team1[player_r.id]
-            #  for tw_enemy in self.game_space.tower_team2:
-                #  hero.enemy_list.append(self.games_space.tower_team2[tw_enemy])
-                #  self.game_space.tower_team2[tw_enemy].enemy_list.append(hero)
-
-        #  if player_r.team == "team2" and player.ready:
-            #  self.game_space.hero_team2[str(player_r.id)] = Hero(self.heros[player_r.id])
-            #  hero = self.hero_team2[player_r.id]
-            #  for tw_enemy in self.game_space.tower_team1:
-                #  hero.enemy_list.append(self.games_space.tower_team1[tw_enemy])
-                #  self.game_space.tower_team1[tw_enemy].enemy_list.append(hero)
-
-        #print(player_r.user.username)
 
     def to_data_dict(self):
         result = dict(status=self.status,

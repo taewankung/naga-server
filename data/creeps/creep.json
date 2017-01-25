@@ -1,6 +1,6 @@
 {
         "name": "Creep",
-        "damage": 20,
+        "damage": 60,
         "magic": 0,
         "hp": 200,
         "hp_regen": 0,

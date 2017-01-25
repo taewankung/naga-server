@@ -1,6 +1,6 @@
 {
     "description":"รองเท้าที่เก็บซ้อนอาวุธลับทำให้การโจมตีของผู้ส่วใส่มีประสิทธิภาพมากขึ้น",
-    "name":"blade boot",
+    "name":"Blade Boot",
     "type":3,
     "type_description":"Special Equipment",
     "effect_description":"Move speed + 75\nDamage+20\nAttack speed -0.15s",

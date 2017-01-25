@@ -6,7 +6,7 @@ class EnemySensor(Sensor):
     def __init__(self,unit,unit_list):
         super().__init__(unit,unit_list)
 
-    def scan(self,in_range = 50):
+    def scan(self,in_range = 25):
         unit_in_range = list()
         near_list = list()
         #u is unit
@@ -19,6 +19,7 @@ class EnemySensor(Sensor):
                 near_list.append((u,dist_u))
                 unit_in_range.append(u)
                 near_list = sorted(near_list,key=itemgetter(1))
+                #print(u.name)
                 #print('{0}:{1}'.format(self.unit.name,[u.name for u in unit_in_range]))
         for i in range(0,len(near_list)):
             unit_in_range[i] = near_list[i][0]
