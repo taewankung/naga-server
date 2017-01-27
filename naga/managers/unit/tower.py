@@ -1,10 +1,11 @@
 from .building import Building
 from .sensor.enemy_sensor import EnemySensor
+import time
 
 class Tower(Building):
     def __init__(self,data_tower):
         super().__init__(data_tower)
-        self.current_speed_dmg = 0.0000000000000
+        self.current_speed_dmg = time.time()
         self.damage_speed = self.data_unit.damage_speed
         self.enemy_list = []
         self.near_enemy_list = []
@@ -22,9 +23,6 @@ class Tower(Building):
     def attack(self):
         #print('{0}: attack'.format(self.name))
         if len(self.near_enemy_list) != 0:
-            if self.current_speed_dmg >= self.damage_speed:
+            if time.time()-self.current_speed_dmg >= self.damage_speed:
                 self.near_enemy_list[0].current_hp = self.near_enemy_list[0].current_hp - self.damage
-                print(self.near_enemy_list[0].current_hp)
-                self.current_speed_dmg = 0
-            else:
-                self.current_speed_dmg = self.current_speed_dmg + 0.1;
+                self.current_speed_dmg = time.time()

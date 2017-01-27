@@ -67,6 +67,8 @@ def command_action(hero,command,naga_game):
             hero.scan_enemy_unit()
         if command['action'] == 'buy_item':
             compleate=hero.buy_item(command['item'])
+    else:
+        command['action']=''
     return compleate
 
 class GameScheduler(threading.Thread):

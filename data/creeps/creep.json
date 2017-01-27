@@ -2,7 +2,7 @@
         "name": "Creep",
         "damage": 60,
         "magic": 0,
-        "hp": 200,
+        "hp": 300,
         "hp_regen": 0,
         "mana": 0,
         "mana_regen": 0,

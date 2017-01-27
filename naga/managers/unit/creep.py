@@ -1,6 +1,7 @@
 import math
 from .unit import Unit
 from .sensor.enemy_sensor import EnemySensor
+import time
 
 def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
     return abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
@@ -131,12 +132,10 @@ class Creep(Unit):
         if self.near_enemy_list !=[]:
            # print(self.near_enemy_list)
             enemy = self.near_enemy_list[0]
-            if self.current_speed_dmg >= self.damage_speed:
+            if time.time()-self.current_speed_dmg >= self.damage_speed:
                 self.move(enemy.pos_x,enemy.pos_y)
                 enemy.current_hp = enemy.current_hp - self.damage
-                self.current_speed_dmg = 0
-            else:
-                self.current_speed_dmg = self.current_speed_dmg + 0.001
+                self.current_speed_dmg = time.time()
         self.near_enemy_list = self.enemy_sensor.scan()
         #  else:
             #  self.state = 'walk'

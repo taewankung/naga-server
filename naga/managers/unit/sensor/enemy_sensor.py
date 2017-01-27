@@ -6,7 +6,7 @@ class EnemySensor(Sensor):
     def __init__(self,unit,unit_list):
         super().__init__(unit,unit_list)
 
-    def scan(self,in_range = 25):
+    def scan(self,in_range = 35):
         unit_in_range = list()
         near_list = list()
         #u is unit

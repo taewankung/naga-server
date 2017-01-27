@@ -10,6 +10,7 @@ from .sensor.enemy_sensor import EnemySensor
 from .sensor.team_sensor import TeamSensor
 import math
 from .tower import Tower
+import time
 
 def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
     return abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
@@ -110,10 +111,10 @@ class Hero(Unit):
                 elif skill['skill_type'] == 'support':
                     code = 2
                     used = True
-            if code == 0:
-                if self.act_status["found_event"] !="can_not_use_skill":
-                    self.act_status["found_event"]="can_not_use_skill"
-            elif code == 1:
+            #  if code == 0:
+                #  if self.act_status["found_event"] !="can_not_use_skill":
+                    #  self.act_status["found_event"]="can_not_use_skill"
+            if code == 1:
                 if self.act_status["found_event"] !="battle":
                     self.act_status["found_event"]="battle"
             elif code == 2:
@@ -161,7 +162,7 @@ class Hero(Unit):
             self.gold -= item_dict['price']
             self.max_hp += item_dict['max_hp']
             self.max_mana += item_dict['max_mana']
-            self.damage = item_dict['damage']
+            self.damage += item_dict['damage']
             self.move_speed += item_dict['move_speed']
         if not buy:
             self.act_status['found_event']='can not buy item'
@@ -199,7 +200,7 @@ class Hero(Unit):
 #//////////////update near team////////////////////
     def scan_team_unit(self):
         num_old_team = self.num_current_team
-        self.near_team_list = self.team_sensor.scan()
+        self.near_team_list = self.team_sensor.scan(in_range=50)
         self.num_current_enemy = len(self.near_enemy_list)
         return num_old_team
 
@@ -265,19 +266,18 @@ class Hero(Unit):
         self.num_current_enemy = len(self.near_enemy_list)
         for enemy in self.near_enemy_list:
             if enemy.name == target:
-                if self.current_speed_dmg >= self.damage_speed:
+                if time.time() - self.current_speed_dmg >= self.damage_speed:
                     enemy.current_hp = enemy.current_hp - self.damage
+                    print('{0}:{1} {2}'.format(enemy.name,enemy.current_hp,self.damage))
                     if type(enemy) is Hero:
                         self.kill = self.kill + 1
                     self.check_enemy_die(enemy)
-                    self.current_speed_dmg = 0
-                else:
-                    self.current_speed_dmg = self.current_speed_dmg + 0.001;
+                    self.current_speed_dmg = time.time()
                 if enemy.current_hp > 0:
                     compleate = False
                 else:
                     compleate = True
-        if not compleate and self.act_status["found_event"] =="battle":
+        if not compleate:
                 self.act_status["found_event"]="battle"
         else:
             self.act_status["found_event"]=""
@@ -357,6 +357,7 @@ class Hero(Unit):
                 damage_speed=self.damage_speed,
                 move_speed=self.move_speed,
                 skills=self.skills,
+                skill_level=self.skill_level,
                 skill_point= self.skill_point,
                 skill_cooldown = [cd for cd in self.current_cooldown],
                 kill=self.skills,

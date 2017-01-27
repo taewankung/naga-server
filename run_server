@@ -1,0 +1,3 @@
+#!/bin/bash
+source ../naga-env/bin/activate
+./bin/naga-server naga-server.conf
