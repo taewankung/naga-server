@@ -199,9 +199,9 @@ class NagaGame(threading.Thread):
                     tower.attack()
 #///////////////Base ////////////////////////////
                 if self.game_space.base_team1 is not None and not self.game_space.base_team1.alive:
-                    self.status = 'end_team2_win'
+                    self.status = 'team2 win'
                 elif self.game_space.base_team2 is not None and not self.game_space.base_team2.alive:
-                    self.status = 'end_team1_win'
+                    self.status = 'team1 win'
 #///////////////Update Game/////////////////////
                 self.game_space.check_status_all_unit(ROUND_CHECK)
                 if time.time()-self.gold_timer >=1:
@@ -211,6 +211,16 @@ class NagaGame(threading.Thread):
                 self.game_controller.response_all(self.update_game(),self)
             time.sleep(ROUND_CHECK)
         print('End Game')
+        response = GameResponse(method='end_game',
+                                args=dict(msg =self.status),
+                                response_type='owner',
+                                qos=1
+                               )
+        self.game_controller.response_all(response,self)
+        self.status = 'stop'
+        self.game_scheduler.stop()
+        self.join()
+#        self.stop()
 #            now = time.time()
 #            print('time.time:{}'.format(now-self.start_time))
 
@@ -264,14 +274,13 @@ class NagaGame(threading.Thread):
     def stop(self,request):
         self.game_scheduler.stop()
         self.game_controller.response_all(self.update_game(),self)
+        self.status = 'stop'
         response = GameResponse(method='end_game',
-                                args=dict(),
+                                args=dict(msg =self.status),
                                 response_type='owner',
                                 qos=1
                                )
         self.game_controller.response_all(response,self)
-        self.status = 'stop'
-        self.game_scheduler.stop()
 
 
     def buy_item(self,request):

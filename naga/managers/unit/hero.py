@@ -360,7 +360,7 @@ class Hero(Unit):
                 skill_level=self.skill_level,
                 skill_point= self.skill_point,
                 skill_cooldown = [cd for cd in self.current_cooldown],
-                kill=self.skills,
+                kill=self.kill,
                 death=self.death,
                 assist=self.assist,
                 lasthit=self.lasthit,
