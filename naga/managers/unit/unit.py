@@ -17,7 +17,7 @@ class Unit:
         self.data_unit = data_unit
         self.name = self.data_unit.name
         self.max_hp = self.data_unit.hp
-        self.current_hp = self.current_hp
+        self.current_hp = self.data_unit.hp
         self.hp_regen = self.data_unit.hp_regen
         self.max_mana = self.data_unit.mana
         self.current_mana = self.max_mana
