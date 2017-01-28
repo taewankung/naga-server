@@ -1,5 +1,6 @@
 import math
 from .unit import Unit
+from .hero import Hero
 from .sensor.enemy_sensor import EnemySensor
 import time
 
@@ -97,6 +98,13 @@ class Creep(Unit):
                     self.attack()
     def stop(self):
         self.state = 'stop'
+
+    def die(self):
+        for enemy in self.near_enemy_list:
+            if enemy is Hero:
+                enemy.current_exp += self.exp
+                enemy.gold += self.bounty
+        pass
 
     def move(self,pos_x,pos_y):
         state_x = False

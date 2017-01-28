@@ -67,6 +67,8 @@ def command_action(hero,command,naga_game):
             hero.scan_enemy_unit()
         if command['action'] == 'buy_item':
             compleate=hero.buy_item(command['item'])
+        if command['action'] == 'use_item':
+            compleate=hero.use_item(command['item'])
     else:
         command['action']=''
     return compleate
@@ -111,6 +113,7 @@ class GameScheduler(threading.Thread):
                                     )
             many_send_list = ['can not buy item','battle','can not use item']
             if hero.act_status["found_event"] not in  many_send_list:
+                self.old_event[player.id] = hero.act_status["found_event"]
                 hero.act_status["found_event"]=""
             else:
                 self.old_event[player.id] = hero.act_status["found_event"]
@@ -291,7 +294,7 @@ class NagaGame(threading.Thread):
 
     def use_item(self,request):
         params = request['args']
-        player = request['player']
+        player_r = request['player']
         msg = params['msg']
         item = params['item']
         if player_r.id in self.game_space.hero_team1:

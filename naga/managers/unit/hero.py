@@ -176,16 +176,16 @@ class Hero(Unit):
         use = False
         if item_dict in self.item_list:
             use = True
-            if item_dict['type_description']=='used':
+            if item_dict['type']==1:
+                print('??')
                 self.current_hp += item_dict['current_hp']
-                self.current_mp += item_dict['current_mana']
-                self.item_list.pop(item_dict)
+                self.current_mana += item_dict['current_mana']
+                self.item_list.remove(item_dict)
         if not use:
             self.act_status['found_event']='can not use item'
             self.act_status['action'] ='can not use item'
         else:
             print('success')
-            print(buy)
         return use
 
     def die(self):
@@ -369,6 +369,7 @@ class Hero(Unit):
                 move_status=self.move_status,
                 act_status=self.act_status,
                 near_enemy_list=[enemy.name for enemy in self.near_enemy_list],
+                near_team_list =[aliance.name for aliance in self.near_team_list],
                 time_to_born=self.time_to_born,
                 item=[item for item in self.item_list],
                 level= self.level,
