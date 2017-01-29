@@ -219,7 +219,6 @@ class NagaGame(threading.Thread):
         self.game_controller.response_all(response,self)
         self.status = 'stop'
         self.game_scheduler.stop()
-        self.join()
 #        self.stop()
 #            now = time.time()
 #            print('time.time:{}'.format(now-self.start_time))
@@ -242,6 +241,7 @@ class NagaGame(threading.Thread):
         self.game_space.load_unit()
         if player_ready_count != len(self.players):
             return
+        #if self.status != '':
         self.status = 'play'
 
         response = GameResponse(method='start_game', qos=1)

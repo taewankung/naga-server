@@ -51,7 +51,8 @@ class RPCServer:
                     payload.get('method', None))
 
         method = self.rpc_methods.get(call_name, None)
-        print('get method', method)
+        if method != self.rpc_methods['list_players']:
+            print('get method', method)
 
         if method is not None:
             try:

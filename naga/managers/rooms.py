@@ -17,6 +17,8 @@ class Room(Manager):
     def create_room(self, request):
         room_name = None
         args = request.get('args')
+        print(request)
+        print(request)
         if args:
             room_name = args.get('room_name')
         room_id = str(uuid.uuid4())
@@ -34,17 +36,20 @@ class Room(Manager):
     def join_game(self, request):
         print("Join Game")
         room_id = request['args'].get('room_id', None)
-        print(room_id)
+        #print(room_id)
         response = dict()
         game = self.rooms.get(room_id, None)
-
+        print(request)
         if game:
             if len(game.players) <= 10:
                 user = self.get_user(request)
                 args=dict()
                 check = False
                 for p in game.players:
+                    print(user)
+                    print(p.user)
                     if user == p.user:
+                        print(request['client_id'])
                         check = True
                         # remove if deploy
                         p.client_id = request['client_id']
@@ -87,7 +92,7 @@ class Room(Manager):
             return
 
         players = room.players
-        print('check players')
+        #print('check players')
         response = dict(players=players)
 
         return response
