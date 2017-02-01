@@ -135,7 +135,7 @@ class BattleArena:
                         hero.enemy_list.append(self.tower_team2[tw_enemy])
                         self.tower_team2[tw_enemy].enemy_list.append(hero)
                     for tw_team in self.tower_team1:
-                        hero.team_list.append(tw_team)
+                        hero.team_list.append(self.tower_team1[tw_team])
                     for hero_id in self.hero_team1:
                         if hero_id != player.id:
                             self.hero_team1[hero_id].team_list.append(hero)
@@ -148,7 +148,7 @@ class BattleArena:
                         hero.enemy_list.append(self.tower_team1[tw_enemy])
                         self.tower_team1[tw_enemy].enemy_list.append(hero)
                     for tw_team in self.tower_team2:
-                        hero.team_list.append(tw_team)
+                        hero.team_list.append(self.tower_team2[tw_team])
                     for hero_id in self.hero_team2:
                         if hero_id != player.id:
                             self.hero_team2[hero_id].team_list.append(hero)

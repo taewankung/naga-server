@@ -253,7 +253,7 @@ class Hero(Unit):
                         for team_unit in self.near_team_list:
                             if type(team_unit) is Hero:
                                 team_unit.assist = team_unit.assist+1
-                    elif type(enemy) is Creep:
+                    elif enemy.name =="Creep":
                         self.lasthit =self.lasthit+1
                     self.check_enemy_die(enemy)
                     self.current_speed_dmg = time.time()

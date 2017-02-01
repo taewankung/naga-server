@@ -9,6 +9,7 @@ class TeamSensor(Sensor):
         unit_in_range = list()
         near_list = list()
         #u is unit
+#        print(self.unit_list)
         for u in self.unit_list:
             dist_u = math.sqrt(
                           pow((u.pos_x - self.unit.pos_x),2)+
