@@ -1,3 +1,4 @@
 #!/bin/bash
-source ../naga-env/bin/activate
-./bin/naga-server naga-server.conf
+SERVER_PATH=$( cd "$(dirname "${BASH_SOURCE}")" ; pwd -P )
+source "$SERVER_PATH/../naga-env/bin/activate"
+$SERVER_PATH/bin/naga-server $SERVER_PATH/naga-server.conf

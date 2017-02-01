@@ -238,27 +238,6 @@ class Hero(Unit):
             self.act_status["found_event"]="reborn"
             self.current_hp = self.max_hp
 
-    def get_status(self):
-        status = {
-                "hp": self.current_hp,
-                "mana": self.current_mana,
-                "str": self.str,
-                "agi": self.agi,
-                "damage": self.damage,
-                "magic": self.magic,
-                "magic_resis": self.magic_resis,
-                "damage_speed": self.damage_speed,
-                "move_speed": self.move_speed,
-                "skills": self.skills,
-                "level": self.level,
-                "kill": self.kill,
-                "death": self.death,
-                "assist": self.assist,
-                "lasthit": self.lasthit,
-                "current_exp":self.current_exp
-                 }
-        return status
-
     def attack(self,target):
         compleate = False
         num_old_enemy = self.num_current_enemy
@@ -270,7 +249,12 @@ class Hero(Unit):
                     enemy.current_hp = enemy.current_hp - self.damage
                     print('{0}:{1} {2}'.format(enemy.name,enemy.current_hp,self.damage))
                     if type(enemy) is Hero:
-                        self.kill = self.kill + 1
+                        self.kill = self.kill+1
+                        for team_unit in self.near_team_list:
+                            if type(team_unit) is Hero:
+                                team_unit.assist = team_unit.assist+1
+                    elif type(enemy) is Creep:
+                        self.lasthit =self.lasthit+1
                     self.check_enemy_die(enemy)
                     self.current_speed_dmg = time.time()
                 if enemy.current_hp > 0:

@@ -65,6 +65,7 @@ def command_action(hero,command,naga_game):
             compleate = hero.upgrade_skill(command["skill_num"])
         if command['action'] == "wait":
             hero.scan_enemy_unit()
+            hero.scan_team_unit()
         if command['action'] == 'buy_item':
             compleate=hero.buy_item(command['item'])
         if command['action'] == 'use_item':
@@ -159,7 +160,7 @@ class NagaGame(threading.Thread):
     def run(self):
         count = 0
         status = ''
-        print('check')
+#        print('check')
         while self.status != 'stop':
             if self.status == 'play':
                 if count ==0:
@@ -377,15 +378,15 @@ class NagaGame(threading.Thread):
                                      msg=msg
                                     )
 
-    def aliance_message(self,request):
+    def alliance_message(self,request):
         params = request['args']
         player_r = request['player']
-        msg = params['msg']
-        args_request = params['args']
-        args = dict(msg=msg)
+        msg_to_team = params['msg_to_team']
+        args = dict(msg=msg_to_team
+                   )
         for p in self.players:
             if p.team == player_r.team and player_r.client_id != p.client_id:
-                print('from {0} to {1}:{2}'.format(player_r.id,p.id,msg))
+                print('from {0} to {1}:{2}'.format(player_r.id,p.id,msg_to_team))
                 response = GameResponse(method='complete_command',
                                 response_type='owner',
                                 args=args,

@@ -113,16 +113,18 @@ class BattleArena:
                   ]
         if len(self.tower_team1) == 0:
             print("load Tower")
+            i = 0
             for position in tower_position:
+                #print(position)
                 t1_tw = models.Tower.objects(name = "t1_tower_"+position).first()
                 t2_tw = models.Tower.objects(name = "t2_tower_"+position).first()
                 t1_tw_data = games.GameUnit(**dict(t1_tw.to_mongo()))
                 t2_tw_data = games.GameUnit(**dict(t2_tw.to_mongo()))
                 tw1 = Tower(t1_tw_data)
                 tw2 = Tower(t2_tw_data)
-                self.tower_team1[tw1.id] = tw1
-                self.tower_team2[tw2.id] = tw2
-
+                self.tower_team1[i] = tw1
+                self.tower_team2[i] = tw2
+                i = i+1
         #set hero and set enemy for hero
         for player in self.players:
             if player.team == "team1" and player.ready:
