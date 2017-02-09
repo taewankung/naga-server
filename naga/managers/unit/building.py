@@ -8,6 +8,8 @@ class Building(Unit):
                        data_unit.position_x,
                        data_unit.position_y
                        )
+        self.exp = 500
+        self.bounty = 50
     def toggle_take_damaged(self):
         self.take_damaged = not self.take_damaged
 

@@ -155,6 +155,8 @@ class BattleArena:
 
         for hero_id in self.hero_team1:
             hero = self.hero_team1[hero_id]
+            hero.enemy_list.append(self.base_team2)
+            hero.team_list.append(self.base_team1)
             for hero_enemy in self.hero_team2:
                 hero.enemy_list.append(self.hero_team2[hero_enemy])
             for hero_team in self.hero_team1:
@@ -163,6 +165,8 @@ class BattleArena:
 
         for hero_id in self.hero_team2:
             hero = self.hero_team2[hero_id]
+            hero.enemy_list.append(self.base_team1)
+            hero.team_list.append(self.base_team2)
             for hero_enemy in self.hero_team1:
                 hero.enemy_list.append(self.hero_team1[hero_enemy])
             for hero_team in self.hero_team2:
@@ -172,6 +176,12 @@ class BattleArena:
         print("load complete")
 
     def check_status_all_unit(self,time=0.5):
+#//////////////check base///////////////////////
+        if self.base_team1.current_hp<=0:
+            self.base_team1.alive = False
+        if self.base_team2.current_hp<=0:
+            self.base_team2.alive = False
+
 #//////////////check hero///////////////////////
         for hero_id in self.hero_team1:
             hero = self.hero_team1[hero_id]
@@ -225,6 +235,7 @@ class BattleArena:
             tower = self.tower_team1[tw_id]
             if tower.current_hp <= 0:
                 tower.alive = False
+                tower.current_hp =0
                 tower.pos_x = -200
                 tower.pos_y = -200
 
@@ -232,6 +243,7 @@ class BattleArena:
             tower = self.tower_team2[tw_id]
             if tower.current_hp <= 0:
                 tower.alive = False
+                tower.current_hp =0
                 tower.pos_x = -200
                 tower.pos_y = -200
 

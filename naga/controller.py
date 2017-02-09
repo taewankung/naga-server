@@ -33,7 +33,7 @@ class NagaController:
 
         self.room.rooms[test_room_id] = game
         hero = models.Hero.objects(name='Sinsamut').first()
-        hero2 = models.Hero.objects(name='Apaimanee').first()
+        hero2 = models.Hero.objects(name='Aungkurha').first()
         hero2_unit = GameUnit(**dict(hero2.to_mongo()))
 
         hero2_unit.pos_x = 950

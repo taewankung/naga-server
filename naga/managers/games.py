@@ -161,7 +161,7 @@ class NagaGame(threading.Thread):
         count = 0
         status = ''
 #        print('check')
-        while self.status != 'stop':
+        while self.status != 'stop' and self.status != 'team1 win' and self.status !='team2 win':
             if self.status == 'play':
                 if count ==0:
                     self.game_scheduler.start()
@@ -217,9 +217,9 @@ class NagaGame(threading.Thread):
                                 response_type='owner',
                                 qos=1
                                )
-        self.game_controller.response_all(response,self)
         self.status = 'stop'
         self.game_scheduler.stop()
+        self.game_controller.response_all(response,self)
 #        self.stop()
 #            now = time.time()
 #            print('time.time:{}'.format(now-self.start_time))
@@ -239,9 +239,10 @@ class NagaGame(threading.Thread):
 
         print("ready count:", player_ready_count)
         self.ready_time = datetime.datetime.now()
-        self.game_space.load_unit()
         if player_ready_count != len(self.players):
+            print('NO')
             return
+        self.game_space.load_unit()
         #if self.status != '':
         self.status = 'play'
 
@@ -387,7 +388,7 @@ class NagaGame(threading.Thread):
         for p in self.players:
             if p.team == player_r.team and player_r.client_id != p.client_id:
                 print('from {0} to {1}:{2}'.format(player_r.id,p.id,msg_to_team))
-                response = GameResponse(method='complete_command',
+                response = GameResponse(method='rev_alliance_message',
                                 response_type='owner',
                                 args=args,
                                 qos=1)

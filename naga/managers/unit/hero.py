@@ -73,6 +73,7 @@ class Hero(Unit):
                        2500,2650,2800,2950
                       ]
         self.max_exp = self.exp_up[self.level]
+        self.buy = False
 #///////////////// skill attibute/////////////////////////
         self.skill_level=[0,0,0,0]
         self.current_cooldown=[0,0,0,0]
@@ -87,6 +88,9 @@ class Hero(Unit):
     def level_up(self):
         if self.level <=25:
             self.level = self.level + 1
+            self.max_hp = self.max_hp + 50
+            self.max_mana = self.max_mana + 100
+            self.damage = self.damage+10
             self.skill_point +=1
             self.max_exp = self.exp_up[self.level]
             self.act_status["found_event"]="level_up"
@@ -153,33 +157,33 @@ class Hero(Unit):
 #                print('{0}: {1}'.format(self.name,self.max_mana))
 
     def buy_item(self,item_dict):
-        buy = False
-        if len(self.item_list) < 6 and self.gold >= item_dict['price']:
+        if len(self.item_list)<= 6 and self.gold >= item_dict['price']:
             print('buy_item')
 #            print(dict(item_dict.to_mongo()))
-            buy = True
+            self.buy = True
             self.item_list.append(item_dict)
             self.gold -= item_dict['price']
             self.max_hp += item_dict['max_hp']
             self.max_mana += item_dict['max_mana']
             self.damage += item_dict['damage']
             self.move_speed += item_dict['move_speed']
-        if not buy:
+        if not self.buy:
             self.act_status['found_event']='can not buy item'
             self.act_status['action'] ='can not buy item'
-        else:
-            print('success')
-            print(buy)
-        return buy
+        return self.buy
 
     def use_item(self,item_dict):
         use = False
         if item_dict in self.item_list:
             use = True
             if item_dict['type']==1:
-                print('??')
+#                print('??')
                 self.current_hp += item_dict['current_hp']
+                if self.current_hp >self.max_hp:
+                    self.current_hp = self.max_hp
                 self.current_mana += item_dict['current_mana']
+                if self.current_mana >self.max_mana:
+                    self.current_mana = self.max_mana
                 self.item_list.remove(item_dict)
         if not use:
             self.act_status['found_event']='can not use item'
@@ -248,13 +252,6 @@ class Hero(Unit):
                 if time.time() - self.current_speed_dmg >= self.damage_speed:
                     enemy.current_hp = enemy.current_hp - self.damage
                     print('{0}:{1} {2}'.format(enemy.name,enemy.current_hp,self.damage))
-                    if type(enemy) is Hero:
-                        self.kill = self.kill+1
-                        for team_unit in self.near_team_list:
-                            if type(team_unit) is Hero:
-                                team_unit.assist = team_unit.assist+1
-                    elif enemy.name =="Creep":
-                        self.lasthit =self.lasthit+1
                     self.check_enemy_die(enemy)
                     self.current_speed_dmg = time.time()
                 if enemy.current_hp > 0:
@@ -273,6 +270,13 @@ class Hero(Unit):
             self.gold += enemy.bounty
             if self.current_exp >= self.max_exp:
                 self.current_exp = self.current_exp - self.max_exp
+                if type(enemy) is Hero:
+                    self.kill = self.kill+1
+                    for team_unit in self.near_team_list:
+                        if type(team_unit) is Hero:
+                            team_unit.assist = team_unit.assist+1
+                elif enemy.name =="Creep":
+                    self.lasthit =self.lasthit+1
                 self.level_up()
                 return 3
             return 1
