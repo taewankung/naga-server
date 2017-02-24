@@ -101,19 +101,31 @@ class Hero(Unit):
         if self.skill_level[skill_number] != 0:
             skill_level = self.skill_level[skill_number]
             skill = self.skills[skill_number]
+            skill_type = skill['skill_type']
+            current_cooldown = self.current_cooldown[skill_number]
+            used_mana = skill['used_mana']
             #print(skill['name'])
-            if skill['skill_type'] != 'buff_passive':
-                if skill['skill_type'] == 'attack' and self.current_cooldown[skill_number]<=0 and self.current_mana >= skill['used_mana'][skill_level]:
+            if skill_type != 'buff_passive':
+                if skill_type == 'attack' and current_cooldown <=0 and self.current_mana >= used_mana[skill_level]:
                     for enemy in self.near_enemy_list:
                         if enemy.name == target:
                             enemy.current_hp = enemy.current_hp - skill['damage'][skill_level]
                             enemy.current_hp = enemy.current_hp - skill['magic'][skill_level]
                             self.current_cooldown[skill_number]= skill['cooldown'][skill_level]
-                            self.current_mana -= skill['used_mana'][skill_level]
+                            self.current_mana -= used_mana[skill_level]
                             code = self.check_enemy_die(enemy)
                             used = True
-                elif skill['skill_type'] == 'support':
+                elif skill_type == 'support':
                     code = 2
+                    for alliance in self.near_team_list:
+                        if alliance == target:
+                            alliance.current_hp = alliance.current_hp + skill['buffs_hp'][skill_level]
+                            alliance.current_mana = alliance.current_mana + skill['buffs_mana'][skill_level]
+                            alliance.current_mana = alliance.armor + skill['buffs_armor'][skill_level]
+                            self.current_cooldown[skill_number]= skill['cooldown'][skill_level]
+                            self.current_mana -= used_mana[skill_level]
+
+
                     used = True
             #  if code == 0:
                 #  if self.act_status["found_event"] !="can_not_use_skill":
@@ -123,8 +135,8 @@ class Hero(Unit):
                     self.act_status["found_event"]="battle"
             elif code == 2:
                 self.act_status["found_event"]="suport team"
-            elif code == 3:
-                self.act_status["found_event"]=""
+            #  elif code == 3:
+                #  self.act_status["found_event"]=""
             pass
         return used
             #print('do not upgraded skill')
@@ -243,7 +255,7 @@ class Hero(Unit):
             self.current_hp = self.max_hp
 
     def attack(self,target):
-        compleate = False
+        complete = False
         num_old_enemy = self.num_current_enemy
         self.near_enemy_list = self.enemy_sensor.scan()
         self.num_current_enemy = len(self.near_enemy_list)
@@ -255,14 +267,14 @@ class Hero(Unit):
                     self.check_enemy_die(enemy)
                     self.current_speed_dmg = time.time()
                 if enemy.current_hp > 0:
-                    compleate = False
+                    complete = False
                 else:
-                    compleate = True
-        if not compleate:
+                    complete = True
+        if not complete:
                 self.act_status["found_event"]="battle"
         else:
             self.act_status["found_event"]=""
-        return compleate
+        return complete
 
     def check_enemy_die(self,enemy):
         if enemy.current_hp <=0:
