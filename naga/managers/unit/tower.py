@@ -38,11 +38,11 @@ class Tower(Building):
                 mana_regen=self.mana_regen,
                 damage=self.damage,
                 armor=self.armor,
-                take_damaged=self.take_damaged,
-                buff_status=self.buff_status,
+        #        take_damaged=self.take_damaged,
+        #        buff_status=self.buff_status,
                 pos_x=self.pos_x,
                 pos_y=self.pos_y,
-                range=self.range,
-                id_controller=self.id_controller,
+        #        range=self.range,
+        #        id_controller=self.id_controller,
                 alive=self.alive,)
         return result

@@ -17,6 +17,7 @@ class GameStatusController(threading.Thread):
         self._running = True
         self._sleep_time = 1
 
+        self.sum_response = 0
     def on_game_message(self, client, userdata, msg):
         game_msg = {}
         try:
@@ -79,11 +80,21 @@ class GameStatusController(threading.Thread):
         for player in game.players:
             client_id = player.client_id
             self.response(response, client_id, game)
+#        return(end_time_response-start_time_response)
+#        print('response time: {}'.format((end_time_response-start_time_response)))
 
     def response(self, response, client_id, game):
         qos = response.qos
+        #start_time_response = time.time()
+        start_time_response = time.time()
+
         response.reponse_date = datetime.datetime.now()
         response_json = json.dumps(vars(response), cls=ComplexEncoder)
+
+        end_time_response = time.time()
+        self.sum_response += (end_time_response -start_time_response)
+        #end_time_response = time.time()
+        #print('response time: {}'.format((end_time_response-start_time_response)))
         self.mqtt_client.publish(self.game_topic_synchonize(client_id, game.room_id), response_json, qos)
         #print('publish to',client_id, response_json)
 

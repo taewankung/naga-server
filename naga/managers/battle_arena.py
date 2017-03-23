@@ -29,6 +29,8 @@ class BattleArena:
         self.game_location = {"spawn_creep_team1":(150,150),
                                "spawn_creep_team2":(850,850)
                               }
+#///////Data to Send/////////////////////
+
 
 #//////Mehod///////////////////////////
     def to_data_dict(self):
@@ -53,7 +55,7 @@ class BattleArena:
         c_data = games.GameUnit(**dict(c.to_mongo()))
 
         if target != '':
-            for i in range(1):
+            for i in range(1): # spawn 1 creep
                 creep = Creep(c_data)
                 #creep.damage = 1000
                 creep.position_lane = target
@@ -68,7 +70,7 @@ class BattleArena:
                 self.creep_team1[creep.id] = creep
 
 
-            for i in range(1):
+            for i in range(1): # spawn 1 creep
                 creep = Creep(c_data)
                 creep.position_lane = target
                 creep.pos_x = self.game_location['spawn_creep_team2'][0]

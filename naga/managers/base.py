@@ -41,7 +41,7 @@ class Manager:
         self.mqtt_client = mqtt_client
 
     def __get_rpc_topic(self, client_id):
-        return 'apaimanee/clients/%s/response' % client_id
+        return 'naga/clients/%s/response' % client_id
 
     def publish(self, topic, msg, qos=1, retain=False):
         msg_str = json.dumps(msg, cls=ComplexEncoder)

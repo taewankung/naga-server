@@ -3,6 +3,7 @@ import datetime
 import time
 import json
 import threading
+from .response_manager import ResponseManager
 #from threading import Timer
 #import sched
 
@@ -50,9 +51,9 @@ class GameResponse:
         self.method = method
         self.qos = qos
 
-ROUND_CHECK = 0.001
+ROUND_CHECK = 0.02
 
-def command_action(hero,command,naga_game):
+def command_action(hero,command):
     compleate= False
     if hero.alive:
         if command['action'] == "move":
@@ -74,6 +75,32 @@ def command_action(hero,command,naga_game):
         command['action']=''
     return compleate
 
+class HeroManager(threading.Thread):
+    def __init__(self,naga_game,hero):
+        super().__init__()
+        self.naga_game = naga_game
+        self.hero = hero
+        self.command_queue = []
+        self.status = False
+
+    def run(self):
+        while self.status:
+            if self.command_queue:
+                cmd = self.command_queue.pop()
+                if hero.alive:
+                    pass
+        time.sleep(0.0001)
+        pass
+
+    def add_command_queue(self,hero_cmd):
+        self.command_queue.insert(0,cmd)
+
+    def stop(self):
+        self.status = False
+
+    def ready(self):
+        self.status = True
+
 class GameScheduler(threading.Thread):
     def __init__(self,naga_game):
         super().__init__()
@@ -86,6 +113,7 @@ class GameScheduler(threading.Thread):
     def run(self):
         for p in self.naga_game.players:
             self.old_event[p.id] = ''
+
         while self.status != 'stop':
             self.counter_send = 0
             for p in self.naga_game.players:
@@ -119,7 +147,7 @@ class GameScheduler(threading.Thread):
             else:
                 self.old_event[player.id] = hero.act_status["found_event"]
 
-        if command_action(hero,command,self.naga_game):
+        if command_action(hero,command):
             args = dict(msg=command["msg"])
             print(player.client_id+" "+command["msg"])
             response = GameResponse(method='complete_command',
@@ -151,19 +179,30 @@ class NagaGame(threading.Thread):
         self.ready_time = None
         self.game_controller = game_controller
         self.game_scheduler = GameScheduler(self)
+        self.response_manager = ResponseManager(self)
         self.lock = threading.Lock()
         self.spawn_time = 0
         self.gold_timer = 0
  #       self.start_time = time.time()
         self.player_executors = dict()
+#this use for test performance
+        self.sum_time = 0
+        self.count_round = 0
+        self.avg_time = 0
+        self.sum_reponse_time = 0
+        self.avg_response_time = 0
 
     def run(self):
         count = 0
         status = ''
+        response_manager = self.response_manager
 #        print('check')
         while self.status != 'stop' and self.status != 'team1 win' and self.status !='team2 win':
             if self.status == 'play':
+                start_time_watcher = time.time()
                 if count ==0:
+                    response_manager.ready()
+                    response_manager.start()
                     self.game_scheduler.start()
                     self.spawn_time=time.time()
                     self.gold_timer=time.time()
@@ -176,9 +215,6 @@ class NagaGame(threading.Thread):
                     self.game_space.create_creep('mid')
                     self.game_space.create_creep('btm')
                     self.game_space.create_creep('top')
-#                else:
-#                    self.spawn_time = self.spawn_time + ROUND_CHECK
-#                    print('{0}'.format(time.time()- self.spawn_time))
 #///////////////Creep Action////////////////////
                 for creep_id in self.game_space.creep_team1:
                     creep = self.game_space.creep_team1[creep_id]
@@ -187,7 +223,7 @@ class NagaGame(threading.Thread):
                 for creep_id in self.game_space.creep_team2:
                     creep = self.game_space.creep_team2[creep_id]
                     creep.run_behavior(lane=str(creep.position_lane)+'_team2')
-                    #print(creep.position_lane)
+#                    print(creep.position_lane)
 #///////////////Tower Action////////////////////
                 for tw_id in self.game_space.tower_team2:
                     tower = self.game_space.tower_team2[tw_id]
@@ -209,9 +245,21 @@ class NagaGame(threading.Thread):
                     self.gold_timer = time.time()
                     self.game_space.gold_per_time()
                 self.game_space.clear_creep_died()
-                self.game_controller.response_all(self.update_game(),self)
+
+                #  self.game_controller.response_all(self.update_game(),self)
+                response_manager.add_response(self.update_game())
+                self.sum_response_time = self.game_controller.sum_response
+#                print('one_round_process: {}'.format(end_time_watcher-start_time_watcher))
+                end_time_watcher = time.time()
+                self.count_round += 1
+                self.sum_time += end_time_watcher-start_time_watcher
             time.sleep(ROUND_CHECK)
         print('End Game')
+        self.avg_time = self.sum_time/self.count_round
+        self.avg_response_time = self.sum_response_time/self.count_round
+        print('averrage process time in one:{0}'.format(self.avg_time))
+        print('averrage response time in one:{0}'.format(self.avg_response_time))
+        response_manager.stop()
         response = GameResponse(method='end_game',
                                 args=dict(msg =self.status),
                                 response_type='owner',
@@ -257,8 +305,8 @@ class NagaGame(threading.Thread):
         args = dict(game_space=self.game_space)
         response = GameResponse(method='update_game',
                 args= args,
-                response_type='owner',
-                qos=1)
+                response_type='all',
+                qos=0)
         return response
 
     def initial(self, request):
