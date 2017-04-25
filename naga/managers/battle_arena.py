@@ -8,9 +8,8 @@ from .scoreboard import ScoreBoard
 from . import games
 import json
 
-
 class BattleArena:
-    def __init__(self, players, size_x=1000, size_y=1000):
+    def __init__(self, players, size_x=1000, size_y=1000,game_controller=None):
         self.players = players
         self.heros ={}
         self.hero_team1 = {}
@@ -21,6 +20,7 @@ class BattleArena:
         self.creep_team2 = {}
         self.base_team1 = None
         self.base_team2 = None
+        self.game_controller = game_controller
         self.nature_creep ={}
         self.scoreboard = ScoreBoard(self.hero_team1,self.hero_team2)
         self.item_shop ={}
@@ -197,7 +197,7 @@ class BattleArena:
                 hero.pos_x = 50
                 hero.pos_y = 50
                 hero.die()
-                hero.countdown_to_born(time)
+                hero.countdown_to_born()
 
         for hero_id in self.hero_team2:
             #hero.scan_enemy_unit()
@@ -211,7 +211,7 @@ class BattleArena:
                 hero.pos_x = 970
                 hero.pos_y = 970
                 hero.die()
-                hero.countdown_to_born(time)
+                hero.countdown_to_born()
 #/////////////////check creep////////////////
         for creep_id in self.creep_team1:
             creep = self.creep_team1[creep_id]
@@ -236,18 +236,12 @@ class BattleArena:
         for tw_id in self.tower_team1:
             tower = self.tower_team1[tw_id]
             if tower.current_hp <= 0:
-                tower.alive = False
-                tower.current_hp =0
-                tower.pos_x = -200
-                tower.pos_y = -200
+                tower.destroyed()
 
         for tw_id in self.tower_team2:
             tower = self.tower_team2[tw_id]
             if tower.current_hp <= 0:
-                tower.alive = False
-                tower.current_hp =0
-                tower.pos_x = -200
-                tower.pos_y = -200
+                tower.destroyed()
 
     def clear_creep_died(self):
         new_dict = {}

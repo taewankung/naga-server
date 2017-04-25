@@ -51,7 +51,7 @@ class GameResponse:
         self.method = method
         self.qos = qos
 
-ROUND_CHECK = 0.02
+ROUND_CHECK = 0.030
 
 def command_action(hero,command):
     compleate= False
@@ -131,6 +131,7 @@ class GameScheduler(threading.Thread):
             hero = self.naga_game.game_space.hero_team2[player.id]
         if hero.act_status["found_event"] !="" and self.old_event[player.id] != hero.act_status["found_event"]:
             args = dict(msg=hero.act_status["found_event"])
+
             response = GameResponse(method='complete_command',
                                     response_type='owner',
                                     args=args,
@@ -140,7 +141,7 @@ class GameScheduler(threading.Thread):
                                     player.client_id,
                                     self.naga_game
                                     )
-            many_send_list = ['can not buy item','battle','can not use item']
+            many_send_list = ['can not buy item','ATK','can not use item']
             if hero.act_status["found_event"] not in  many_send_list:
                 self.old_event[player.id] = hero.act_status["found_event"]
                 hero.act_status["found_event"]=""
@@ -174,10 +175,10 @@ class NagaGame(threading.Thread):
         self.room_id = room_id
         self.room_name = room_name
         self.players = []
-        self.game_space = BattleArena(self.players)#GameSpace()
         self.owner = owner
         self.ready_time = None
         self.game_controller = game_controller
+        self.game_space = BattleArena(self.players,game_controller=self.game_controller)#GameSpace()
         self.game_scheduler = GameScheduler(self)
         self.response_manager = ResponseManager(self)
         self.lock = threading.Lock()
@@ -229,11 +230,20 @@ class NagaGame(threading.Thread):
                     tower = self.game_space.tower_team2[tw_id]
                     tower.update_enemy()
                     tower.attack()
+                    if tower.alive==False:
+                        tower.alive=None
+                        print('tower drestroyed')
+                        response_manager.add_response(self.tower_message('{0} is destroyed'.format(tower.get_name())))
 
                 for tw_id in self.game_space.tower_team1:
                     tower = self.game_space.tower_team1[tw_id]
                     tower.update_enemy()
                     tower.attack()
+                    if tower.alive==False:
+                        tower.alive=None
+                        print('tower drestroyed')
+                        response_manager.add_response(self.tower_message('{0} is destroyed'.format(tower.get_name())))
+
 #///////////////Base ////////////////////////////
                 if self.game_space.base_team1 is not None and not self.game_space.base_team1.alive:
                     self.status = 'team2 win'
@@ -247,7 +257,9 @@ class NagaGame(threading.Thread):
                 self.game_space.clear_creep_died()
 
                 #  self.game_controller.response_all(self.update_game(),self)
-                response_manager.add_response(self.update_game())
+                game_data_processed =self.game_space.to_data_dict()
+                #  print(game_data_processed)
+                response_manager.add_response(self.update_game(game_data_processed))
                 self.sum_response_time = self.game_controller.sum_response
 #                print('one_round_process: {}'.format(end_time_watcher-start_time_watcher))
                 end_time_watcher = time.time()
@@ -256,9 +268,9 @@ class NagaGame(threading.Thread):
             time.sleep(ROUND_CHECK)
         print('End Game')
         self.avg_time = self.sum_time/self.count_round
-        self.avg_response_time = self.sum_response_time/self.count_round
+#        self.avg_response_time = self.sum_response_time/self.count_round
         print('averrage process time in one:{0}'.format(self.avg_time))
-        print('averrage response time in one:{0}'.format(self.avg_response_time))
+#        print('averrage response time in one:{0}'.format(self.avg_response_time))
         response_manager.stop()
         response = GameResponse(method='end_game',
                                 args=dict(msg =self.status),
@@ -300,9 +312,21 @@ class NagaGame(threading.Thread):
     def add_player(self, player):
         self.players.append(player)
 
+    def tower_message(self,args=None):
+        args = dict(msg=args)
+        response = GameResponse(method='rev_tower_message',
+                args= args,
+                response_type='all',
+                qos=0)
+        return response
 
-    def update_game(self):
-        args = dict(game_space=self.game_space)
+
+    def update_game(self,args=None):
+        if args == None:
+            game_space_dict = self.game_space.to_data_dict()
+            args = dict(game_space=game_space_dict)
+        else:
+            args = dict(game_space=args)
         response = GameResponse(method='update_game',
                 args= args,
                 response_type='all',
@@ -324,7 +348,7 @@ class NagaGame(threading.Thread):
     def stop(self,request):
         self.game_scheduler.stop()
         self.game_controller.response_all(self.update_game(),self)
-        self.status = 'stop'
+        self.status = 'team1 win'
         response = GameResponse(method='end_game',
                                 args=dict(msg =self.status),
                                 response_type='owner',

@@ -20,6 +20,13 @@ class Tower(Building):
         self.near_enemy_list = self.enemy_sensor.scan(in_range=100)
         self.num_current_enemy = len(self.near_enemy_list)
 
+    def destroyed(self):
+        if self.alive != None:
+            self.alive = False
+        self.current_hp =0
+        self.pos_x = -200
+        self.pos_y = -200
+
     def attack(self):
         #print('{0}: attack'.format(self.name))
         if len(self.near_enemy_list) != 0:

@@ -34,6 +34,9 @@ class Unit:
         self.alive = True
         self.item_list = item_list
 
+    def get_name(self):
+        return self.name
+
     def get_current_hp(self):
         return self.current_hp
 

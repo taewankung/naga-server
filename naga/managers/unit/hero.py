@@ -59,6 +59,7 @@ class Hero(Unit):
         self.item_list = []
         #  self.target = None
         self.time_to_born = 0
+        self.current_time_to_born =0
         self.enemy_list = []
         self.near_enemy_list = []
         self.num_current_enemy = len(self.near_enemy_list)
@@ -131,8 +132,8 @@ class Hero(Unit):
                 #  if self.act_status["found_event"] !="can_not_use_skill":
                     #  self.act_status["found_event"]="can_not_use_skill"
             if code == 1:
-                if self.act_status["found_event"] !="battle":
-                    self.act_status["found_event"]="battle"
+                if self.act_status["found_event"] !="use_skill":
+                    self.act_status["found_event"]="use_skill"
             elif code == 2:
                 self.act_status["found_event"]="suport team"
             #  elif code == 3:
@@ -207,9 +208,10 @@ class Hero(Unit):
     def die(self):
         self.alive = False
         if self.time_to_born <=0 and not self.alive:
-            self.act_status["found_event"]="died"
+            self.act_status["found_event"]="dead"
             self.death = self.death+1
             self.time_to_born = self.level*5;
+            self.current_time_to_born =time.time()
             self.current_cooldown = [0,0,0,0]
             self.current_mana = self.max_mana
 
@@ -234,13 +236,14 @@ class Hero(Unit):
         #  if complete:
             #  print('{0}:{1}'.format(self.pos_x,self.pos_y))
 
-    def countdown_to_born(self,time=0.001):
+    def countdown_to_born(self):
 #        print(self.time_to_born)
-        if self.time_to_born > 0:
-            self.time_to_born = self.time_to_born - time
-        if self.time_to_born <= 0 :
-            print('Reborn')
-            self.reborn()
+        if not self.alive:
+            #print(time.time()-self.current_time_to_born)
+            if (time.time()-self.current_time_to_born) >= self.time_to_born:
+                print(time.time()-self.current_time_to_born)
+                self.time_to_born = 0
+                self.reborn()
 
     def count_cooldown(self,time=0.001):
         for cd in range(0,3):
@@ -256,6 +259,7 @@ class Hero(Unit):
 
     def attack(self,target):
         complete = False
+        msg =''
         num_old_enemy = self.num_current_enemy
         self.near_enemy_list = self.enemy_sensor.scan()
         self.num_current_enemy = len(self.near_enemy_list)
@@ -264,19 +268,23 @@ class Hero(Unit):
                 if time.time() - self.current_speed_dmg >= self.damage_speed:
                     enemy.current_hp = enemy.current_hp - self.damage
                     print('{0}:{1} {2}'.format(enemy.name,enemy.current_hp,self.damage))
-                    self.check_enemy_die(enemy)
+                    e_die=self.check_enemy_die(enemy)
+                    if e_die == 4:
+                        msg = 'kill'
                     self.current_speed_dmg = time.time()
                 if enemy.current_hp > 0:
                     complete = False
+                    msg = 'atk'
                 else:
                     complete = True
         if not complete:
-                self.act_status["found_event"]="battle"
+                self.act_status["found_event"]=msg
         else:
-            self.act_status["found_event"]=""
+            self.act_status["found_event"]=msg
         return complete
 
     def check_enemy_die(self,enemy):
+        code = 3
         if enemy.current_hp <=0:
             self.current_exp += enemy.exp
             self.gold += enemy.bounty
@@ -287,10 +295,11 @@ class Hero(Unit):
                     for team_unit in self.near_team_list:
                         if type(team_unit) is Hero:
                             team_unit.assist = team_unit.assist+1
+                            code = 4
                 elif enemy.name =="Creep":
                     self.lasthit =self.lasthit+1
                 self.level_up()
-                return 3
+                return code
             return 1
 
     def move(self,pos_x,pos_y):
@@ -307,8 +316,8 @@ class Hero(Unit):
             elif pos_x < self.pos_x and pos_y > self.pos_y:
                 rad = rad + pi
 
-            forge_x = self.move_speed * math.cos(rad)*0.001
-            forge_y = self.move_speed * math.sin(rad)*0.001
+            forge_x = self.move_speed * math.cos(rad)*0.01
+            forge_y = self.move_speed * math.sin(rad)*0.01
 
         if not isclose(pos_x,self.pos_x,1e-2) and self.pos_x < 1000 and self.pos_x > -1:
             self.pos_x += forge_x

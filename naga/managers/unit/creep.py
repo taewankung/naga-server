@@ -116,8 +116,8 @@ class Creep(Unit):
             rad = rad + pi
         elif pos_x < self.pos_x and pos_y > self.pos_y:
             rad = rad + pi
-        forge_x = self.move_speed * math.cos(rad)*0.001
-        forge_y = self.move_speed * math.sin(rad)*0.001
+        forge_x = self.move_speed * math.cos(rad)*0.01
+        forge_y = self.move_speed * math.sin(rad)*0.01
         if not isclose(pos_x,self.pos_x,1e-01) and self.pos_x < 1000 and self.pos_x > -1:
             self.pos_x += forge_x
         else:
